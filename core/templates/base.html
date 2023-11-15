@@ -15,6 +15,8 @@
 <body>
     <nav class="navbar navbar-expand-lg bg-warning">
         <a class="navbar-brand" href="/">Yanzi Parcels</a>
+
+        {% if not request.user.is_aunthenticated %}
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -28,6 +30,14 @@
                 </li>
             </ul>
         </div>
+
+        {% else %}
+        <form class="form-inline">
+            <span class="mt-4">{{request.user.get_full_name|title}}</span>
+            <a href="/sign-out" class="btn btn-outline-dark">Sign Out</a>
+        </form>
+
+        {% endif %}
     </nav>
 
    {% block content%}{% endblock %}
