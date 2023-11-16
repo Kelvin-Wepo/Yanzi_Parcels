@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-4">
+            <div class="card-body">
+                <h4 class="text-center text-uppercase mb-3">
+                    <b>
+                        {% if request.GET.next != '/courier' %}
+                        Customer
+                        {% else %}
+                        Courier
+                        {% endif %}
+                    </b>
+                </h4>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <button type="submit" class="btn btn-warning btn-block">Sign Up</button>
+                    <p class="text-center mt-3">
+                        Already have an Account? <a href ="/sign-in/next={{ request.GET.next }}"><b>Sign In</b></a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
