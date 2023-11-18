@@ -1,0 +1,16 @@
+{% extends 'customer/base.html'%}
+{% load bootstrap4 %}
+
+{% block main %}
+<b class = "text-secondary">Basic Information</b><br/>
+<div class="card bg-white mt-2 mb-5 ">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            {% bootstrap_form user_form %}
+            <input type="hidden" name="action" value="update_profile">
+            <button type="submit"class="btn btn-warning">Save</button>
+        </form>
+    </div>
+    </div>
+    {% endblock %}
