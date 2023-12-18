@@ -1,0 +1,188 @@
+                   (% extends 'customer/base.html'%)
+                        {% load static %}
+
+                        {% block head %}
+                            <style>
+                                .photo{
+                                    object-fit:cover;
+                                }
+                                .photo-blank{
+                                    border:2px dashed #DFDFDF;
+                                    height:130px;
+                                    width:130px;
+                                    border-radius:5px;
+                                    align-items:center;
+                                    display:flex;
+                                    justify-content:center;
+                                    text-align:center;
+                                    padding:10px;
+                                }
+                            </style>
+                            <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAP_API_KEY }}&callback=initMaps&libraries=places&v=weekly"defer></script>
+                            <script>
+                         var pickupLat =parseFloat("{{ job.pickup_lat}}");
+                         var pickupLng =parseFloat("{{ job.pickup_lng}}");
+                         var deliveryLat =parseFloat("{{ job.delivery_lat}}");
+                         var deliveryLng =parseFloat("{{ job.delivery_lng}}");
+
+                         function initMap() {
+                            const directionsService = new google.maps.DirectionService();
+                            const directionRenderer = new google.maps.DirectionRenderer();
+                            const map = new google.maps.Map(document.getElementById("map"),{
+                                zoom:7,
+                                center:{lat:41.85, lng: -87.65},
+                            });
+                            directionsRenderer.setMap(map):
+
+                            calculateAndDisplayRoute(map,directionsService, directionRenderer):
+                         }
+                         function calculateAndDisplayRoute(map,directionService,directionsRenderer){
+                            directionService.route(
+                                {
+                                    origin:new google.maps.LatLng(pickupLat,pickupLng),
+                                    destination:new google.maps.LatLng(deliveryLat,deliveryLng),
+                                    travelMode:google.maps.TravelMode.DRIVING,
+                                },
+                                (response,status) =>{
+                                    if (status === "OK"){
+                                     new google.maps.DirectionsRenderer({
+                                        map:map,
+                                        directions: response,
+                                        suppressMarkers:true,
+                                        polylineOptions: {
+                                            strokecolor:"#000",
+                                            strokeWeight:5,
+                                            strokeOpacity:0.8
+                                        }
+                                     });  
+
+                                     var leg = reponse.routes[0].legs[0];
+                                     new google.maps.Marker({
+                                        position: leg.start_location,
+                                        map:map,
+                                        icon:"{% static 'img/start.png'%}"
+                                     });
+
+                                     new google.maps.Marker({
+                                        position: leg.end_location,
+                                        map:map,
+                                        icon:"{% static 'img/end.png'%}"
+                                     });   
+                                    }else {
+                                        window.alert(Directions request failed due to " + status);
+                                    }
+                                }
+                            );
+                         }
+
+                            </script>
+                        {% endblock%}
+
+                        {% block main%}
+
+                        {% comment %} JOB DESCRIPTION {% endcomment %}
+                        <div class="media mb-4">
+                            <img src="{{job.photo.url}}"class="rounded-lg mr-3"width="150" height="150">
+                            <div class="media-body">
+
+
+                                {% if job.status == 'processing' %}
+                                <form method= "POST" class= "float-right">
+                                    {% csrf_token %}
+                                    <button type="submit" class "btn btn-warning">Cancel Job</button>
+                                </form>
+                                {% endif %}
+
+
+                                <h4>{{job.name}}</h4>
+                                <p class= "text-secondary">{{job.description}}</p>
+
+                                <div class="row">
+                                        <div class="col-lg-3">
+                                            <small class="text-secondary">CATERGORY</small><br/>
+                                            <span><b>{{job.catergory.name}}</b></span>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <small class="text-secondary">SIZE</small><br/>
+                                            <span><b>{{job.get_size_display}}</b></span>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <small class="text-secondary">PRICE</small></br>
+                                            <span><b>{{job.price}}</b></span>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <small class="text-secondary">QUANTITY</small><br/>
+                                            <span><b>{{job.quantity}}</b></span>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        {% comment %} DELIVERY INFORMATION {% endcomment %}
+
+                        <b class="text-secondary">DELIVERY INFORMATION</b><br/>
+                        <div class="card bg-white mt-2 mb-5">
+                            <div class= "card-body p-4">
+
+                                <h4 class="mb-3">
+                                    Pickup
+                                </h4>
+                                <div class="row">
+                                <div class="col-lg-4">
+                                    <b>Address</b><br/>
+                                    <span>{{job.pickup_address}}</span>
+                                </div>
+                                <div class="col-lg-4">
+                                    <b>{{job.pickup_name}}</b><br/>
+                                    <span>{{job.pickup_phone}}</span>
+                                </div>
+                                <div id= "pickup_photo" class="col-lg-4">
+                                    {% if job.pickup_photo %}
+                                    <img src="{{ job.pickup_photo.url}}" class="rounded-lg photo" width="130" height="130">
+                                    {% else %}
+                                    <div class="photo-blank">Pickup Photo Will Appear Here</div>
+                                    {% endif %}
+                                </div>
+                        <hr class="my-4"/>
+
+                        <h4 class="mb-3">
+                                    Delivery
+                                </h4>
+                                <div class="row">
+                                <div class="col-lg-4">
+                                    <b>Address</b><br/>
+                                    <span>{{job.delivery_address}}</span>
+                                </div>
+                                <div class="col-lg-4">
+                                    <b>{{job.delivery_name}}</b><br/>
+                                    <span>{{job.delivery_phone}}</span>
+                                </div>
+                                <div id= "delivery_photo" class="col-lg-4">
+                                    {% if delivery_photo %}
+                                    <img src="{{ job.delivery_photo.url}}" class="rounded-lg photo" width="130" height="130">
+                                    {% else %}
+                                    <div class="photo-blank">Delivery Photo Will Appear Here</div>
+                                    {% endif %}
+
+
+                                </div>
+                            </div>
+
+                        </div>  
+
+                    {% comment %} MAP AREA {% endcomment %}
+
+                    <div class="d-flex justify-content-between">
+                        <b class="text-secondary">TRACK DELIVERY</b>
+                        <div>
+                            <span class="badge badge-warning">{{job.get_status_display}}</span>
+                        </div>
+                    </div>
+                    <div class="card bg-white mt-2">
+                        <div class="card-body p-0">
+                            <div id="map" style="height:500px;"></div>
+
+                        </div>
+
+                    </div>
+                        {% endblock %}

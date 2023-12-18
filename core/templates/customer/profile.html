@@ -1,16 +1,32 @@
-{% extends 'customer/base.html'%}
+{% extends 'customer/base.html' %}
 {% load bootstrap4 %}
 
 {% block main %}
-<b class = "text-secondary">Basic Information</b><br/>
-<div class="card bg-white mt-2 mb-5 ">
-    <div class="card-body">
-        <form method="POST">
-            {% csrf_token %}
-            {% bootstrap_form user_form %}
-            <input type="hidden" name="action" value="update_profile">
-            <button type="submit"class="btn btn-warning">Save</button>
-        </form>
+    <b class="text-secondary">Basic Information</b><br/>
+    <div class="card bg-white mt-3 mb-5">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ user_form|bootstrap}}  {# Use Bootstrap 4 form rendering for user_form #}
+                {{ customer_form|bootstrap }}  {# Use Bootstrap 4 form rendering for customer_form #}
+
+                <input type="hidden" name="action" value="update_profile">
+                <button type="submit" class="btn btn-warning mt-3">Save</button>
+            </form>
+        </div>
     </div>
+
+    <b class="text-secondary">Change Password</b><br/>
+    <div class="card bg-white mt-4 mb-5">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ user_form|bootstrap }}  {# Use Bootstrap 4 form rendering for user_form #}
+                {{ password_form|bootstrap }}  {# Use Bootstrap 4 form rendering for password_form #}
+
+                <input type="hidden" name="action" value="update_password">
+                <button type="submit" class="btn btn-warning mt-3">Save</button>
+            </form>
+        </div>
     </div>
-    {% endblock %}
+{% endblock %}

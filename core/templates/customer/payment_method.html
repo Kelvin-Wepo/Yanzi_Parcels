@@ -1,0 +1,111 @@
+<!-- Your HTML template -->
+{% extends 'customer/base.html' %}
+{% load bootstrap4 %}
+
+{% block head %}
+<script src="https://js.stripe.com/v3"></script>
+<style>
+    .StripeElement {
+        height: 40px;
+        padding: 10px 12px;
+        width: 100%;
+        color: #32325d;
+        background-color: white;
+        border: 1px solid #cfd7df;
+        border-radius: 4px;
+    }
+
+    .StripeElement-focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 25);
+    }
+
+    .StripeElement-invalid {
+        border-color: #fa755a;
+    }
+
+    .StripeElement-webkit-autofill {
+        background-color: #fefde5 !important;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+{% if not request.user.customer.stripe_payment_method_id %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        Let's add your Credit or Debit card to <strong>Create a Job</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}
+
+<b class="text-secondary">Your Credit/Debit Card</b>
+
+<div class="card bg-white mt-2 mb-5">
+    <div class="card-body">
+        {% if request.user.customer.stripe_payment_method_id %}
+            <div id="change-card" class="input-group">
+                <input type="text" class="form-control" disabled
+                       value="************{{ request.user.customer.stripe_card_last4 }}">
+                <div class="input-group-append">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <form id="setup-form" data-secret="{{ client_secret }}" method="POST">
+            {% csrf_token %}
+            {% if not request.user.customer.stripe_payment_method_id %}
+                <div id="card-element"></div>
+                <button class="btn btn-warning mt-3" type="submit">
+                    Save Card
+                </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+{% if not request.user.customer.stripe_payment_method_id %}
+    <script>
+        var stripe = Stripe("{{ STRIPE_API_PUBLIC_KEY }}");
+        var elements = stripe.elements();
+        var cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+
+        var setupForm = document.getElementById('setup-form');
+
+        if (setupForm) {
+            var cardButton = document.createElement('button');
+            cardButton.setAttribute('class', 'btn btn-warning mt-3');
+            cardButton.setAttribute('type', 'button');
+            cardButton.setAttribute('id', 'card-button');
+            cardButton.innerHTML = 'Save Card';
+            setupForm.appendChild(cardButton);
+
+            cardButton.addEventListener('click', function (ev) {
+                stripe.confirmCardSetup(
+                    '{{ client_secret }}',
+                    {
+                        payment_method: {
+                            card: cardElement,
+                        },
+                    },
+                ).then(function (results) {
+                    if (results.error) {
+                        // Display error.message in UI
+                        alert(results.error.message);
+                    } else {
+                        // The setup has succeeded. Display a success message.
+                        alert("Payment method is added successfully");
+                        window.location.reload();
+                    }
+                });
+            });
+        }
+    </script>
+{% endif %}
+{% endblock %}

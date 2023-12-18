@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-suhrp7jqr5rjs1fx!yr-1+%gs$k%4a117v1(qp7e6u$$3a3=*_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -37,10 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'core',
-    'bootstrap4',
-    'social_django',
     'core.apps.CoreConfig',
+     'crispy_forms',
+     'bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.ProfileMiddleware',
 ]
 
 ROOT_URLCONF = 'Yanzi.urls'
@@ -58,7 +59,7 @@ ROOT_URLCONF = 'Yanzi.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+       'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,6 +70,7 @@ TEMPLATES = [
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect'
             ],
+            
         },
     },
 ]
@@ -133,6 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL ='/sign-in/'
 LOGIN_REDIRECT_URL ='/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+MEDIA_URL ='/media/'
 
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.facebook.FacebookOAuth2',
@@ -147,10 +151,19 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS ={
 
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS =True
-EMAIL_PORT =587
-EMAIL_HOST_USER=""
-EMAIL_HOST_PASSWORD=""
-DEFAULT_FROM_EMAIL ='Yanzi Parcel <no-reply@yanziparcel.localhost>'
+# CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_USE_TLS =True
+# EMAIL_PORT =587
+# EMAIL_HOST_USER=""
+# EMAIL_HOST_PASSWORD=""
+# DEFAULT_FROM_EMAIL ='Yanzi Parcel <no-reply@yanziparcel.localhost>'
+
+
+STRIPE_PUBLIC_API_KEY ='pk_test_51OLxrMIhECL0gCBjDJkMCCpbtdvIehnp30mZ8cYfjZgeXV2QsP7uAoisaOK8qSg1epcC9iBWFopI7G8gqv3iCVPV00MkrKBcuE'
+STRIPE_API_SECRET_KEY ='sk_test_51OLxrMIhECL0gCBjBgZSVnVJmCSzfhl7kOxTgJ0N5zsanIjgCUicnJz9h0v631cydfNgMktMXkahB3zXgEyVEXVO00xS7Clr6Z'
+
+GOOGLE_MAP_API_KEY =""

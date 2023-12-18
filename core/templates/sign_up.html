@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load bootstrap4 %}
+{% load crispy_forms_tags %}  <!-- Use crispy_forms_tags instead of bootstrap4 -->
 
 {% block content %}
 <div class="container-fluid mt-5">
@@ -16,16 +16,16 @@
                     </b>
                 </h4>
 
-                <form method="POST">
+                <form method="POST" class="crispy-form">  <!-- Use the 'crispy-form' class -->
                     {% csrf_token %}
-                    {% bootstrap_form form %}
+                    {% crispy form %}  <!-- Use crispy form rendering -->
                     <button type="submit" class="btn btn-warning btn-block">Sign Up</button>
                     <p class="text-center mt-3">
-                        Already have an Account? <a href ="/sign-in/next={{ request.GET.next }}"><b>Sign In</b></a>
+                        Already have an Account? <a href="/sign-in/next={{ request.GET.next }}"><b>Sign In</b></a>
                     </p>
                     <hr>
                     <a href="{% url 'social:begin' 'google-oauth2'%}?next={{ request.GET.next }}"
-                     class="btn btn-outline-primary btn-block">Sign In With Facebook</a>
+                        class="btn btn-outline-primary btn-block">Sign In With Facebook</a>
                 </form>
             </div>
         </div>

@@ -1,35 +1,34 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load bootstrap4 %}
 {% block content%}
 
-<div class ="container bg-light mt-4 pt-3 pb-3">
+{% url 'customer:create_job' as create_job_url %}
+{% url 'customer:profile' as profile_url %}
+{% url 'customer:current_jobs' as current_jobs_url %}
+{% url 'customer:archived_jobs' as archived_jobs_url %}
+{% url 'customer:payment_method' as payment_method_url %}
+
+<div class="container bg-light mt-4 pt-3 pb-3">
     <div class="row">
         <div class="col-lg-4">
             <div class="text-center">
-                <img src"{% if request.user.customer.avatar %}{{ request.user.customer.avatar.url}}{% else %}{% endif %}" alt="" class="rounded-circle mb-2" width="100" height= "100">
-                <h4>{{request.user.get_full_name}}</h4>
-                <p class="text-secondary">{{ request.user.email}}</p>
+                <img src="{% if request.user.customer.avatar %}{{ request.user.customer.avatar.url }}{% else %}{% endif %}" alt="" class="rounded-circle mb-2" width="100" height="100">
+                <h4>{{ request.user.get_full_name }}</h4>
+                <p class="text-secondary">{{ request.user.email }}</p>
             </div>
-            <ul class="list-group">
-                <li class="list-group-item">Create a Job</li>
-                <li class="list-group-item">My Jobs</li>
-                <li class="list-group-item">Profile Information</li>
-                <li class="list-group-item">Payment Details</li>           
-              </ul>
+            <div class="list-group mt-5">
+                <a href="{% url 'customer:create_job' %}" class="list-group-item list-group-item-action {% if request.path == create_job_url %}active{% endif %}">Create a Job</a>
+                <a href="{% url 'customer:current_jobs' %}" class="list-group-item list-group-item-action {% if request.path == current_jobs_url or request.path == archived_jobs_url %}active{% endif %}">My Jobs</a>
+                <a href="{% url 'customer:profile' %}" class="list-group-item list-group-item-action {% if request.path == profile_url %}active{% endif %}">Profile Information</a>
+                <a href="{% url 'customer:payment_method' %}" class="list-group-item list-group-item-action{% if request.path == payment_method_url %}active{% endif %}">Payment Method</a>
             </div>
-            <div class="col-lg-8">
-                {% block main %}
-
-               {% endblock %}
-
-            </div>
+        </div>
+        <div class="col-lg-8">
+            {% block main %}
+            {% endblock %}
         </div>
     </div>
 </div>
-
-
-
-
 
 {% endblock %}
