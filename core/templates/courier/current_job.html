@@ -1,0 +1,117 @@
+{% extends 'courier/base.html' %} 
+{ % load static %}
+
+{% block head %}
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAP_API_KEY }}&callback=initMaps&libraries=places&v=weekly"defer></script>
+<script>
+var pickupLat =parseFloat("{{ job.pickup_lat}}");
+var pickupLng =parseFloat("{{ job.pickup_lng}}");
+var deliveryLat =parseFloat("{{ job.delivery_lat}}");
+var deliveryLng =parseFloat("{{ job.delivery_lng}}");
+
+function initMap() {
+const directionsService = new google.maps.DirectionService();
+const directionRenderer = new google.maps.DirectionRenderer();
+const map = new google.maps.Map(document.getElementById("map"),{
+    zoom:7,
+    center:{lat:41.85, lng: -87.65},
+});
+directionsRenderer.setMap(map):
+
+calculateAndDisplayRoute(map,directionsService, directionRenderer):
+}
+function calculateAndDisplayRoute(map,directionService,directionsRenderer){
+directionService.route(
+    {
+        origin:new google.maps.LatLng(pickupLat,pickupLng),
+        destination:new google.maps.LatLng(deliveryLat,deliveryLng),
+        travelMode:google.maps.TravelMode.DRIVING,
+    },
+    (response,status) =>{
+        if (status === "OK"){
+         new google.maps.DirectionsRenderer({
+            map:map,
+            directions: response,
+            suppressMarkers:true,
+            polylineOptions: {
+                strokecolor:"#000",
+                strokeWeight:5,
+                strokeOpacity:0.8
+            }
+         });  
+
+         var leg = reponse.routes[0].legs[0];
+         new google.maps.Marker({
+            position: leg.start_location,
+            map:map,
+            icon: static "img/pngwing.com (2).png"
+         });
+
+         new google.maps.Marker({
+            position: leg.end_location,
+            map:map,
+            icon:static "img/pngwing.com (3).png"
+         });   
+        }else {
+            window.alert(Directions request failed due to " + status);
+        }
+    }
+);
+}
+
+</script>
+
+<style>
+    #map {
+        flex: 1;
+    }
+    small {
+        font-size: 12px;
+        line-height:1.2 rem
+    }
+    .card{
+        border:none;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column h-100" style="padding-bottom:60px">
+    <div id="map"></div>
+
+    <div class="card">
+        <div class="card-body p-2">
+            <div class="media">
+                <img src="{{ job.photo.url }}" class="rounded-lg mr-3" width="50px" height="50px">
+                <div class="media-body">
+                    <b>{{job.name}}</b>
+                    
+                    <div class="d-flex">
+                        <div class="flex-grow-1 mr-2">
+                            <small class="text-success">
+                                <i class="fas fa-car"></i><span>{{job.distance}}</span> Km
+                                <i class="far fa-clock ml-2"></i><span>{{job.duration}}</span> Mins
+                            </small>
+
+                            <div class="d-flex align-items-center mt-2">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <small  class="text-secondary ml-2">{{job.pickup_address}}</small>
+                            </div>
+
+                            <div class="d-flex align-items-center mt-2">
+                                <i class="fas fa-flag-checkered"></i>
+                                <small class="text-secondary ml-2">{{job.delivery_address}}</small>
+                            </div>
+                            Ksh.<h3>{{job.price}}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'courier/bottom_tabs.html' %}
+</div>
+{% endblock %}
