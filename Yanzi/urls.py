@@ -41,6 +41,9 @@ courier_urlpatterns = [
     path('jobs/available/',courier_views.available_jobs_page, name="available_jobs"),
     path('jobs/available/<id>',courier_views.available_job_page, name="available_job"),
     path('jobs/current/', courier_views.current_job__page, name="current_job"),
+    path('jobs/current/<id>/take_photo/', courier_views.current_job_take_photo_page, name="current_job_take_photo"),
+
+
 
 
 
@@ -50,7 +53,7 @@ courier_urlpatterns = [
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', include('social_django.urls', namespace='social')),
+    path('', include('social_django.urls', namespace='social')),
     path('', views.home, name="home"),
     path('sign-in/', auth_views.LoginView.as_view(template_name="sign_in.html"), name='login'),
     path('sign-out/', auth_views.LogoutView.as_view(next_page="/"), name='logout'),
