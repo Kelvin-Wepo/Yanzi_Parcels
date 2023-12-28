@@ -126,6 +126,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -138,20 +143,20 @@ LOGIN_REDIRECT_URL ='/'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 MEDIA_URL ='/media/'
 
-AUTHENTICATION_BACKENDS = [
-    'social_core.backends.facebook.FacebookOAuth2',
-    'django.contrib.auth.backends.ModelBackend',
-]
+# AUTHENTICATION_BACKENDS = [
+#     'social_core.backends.facebook.FacebookOAuth2',
+#     'django.contrib.auth.backends.ModelBackend',
+# ]
 
-SOCIAL_AUTH_FACEBOOK_KEY=""
-SOCAL_AUTH_FACEBOOK_SECRET=""
-SOCIAL_AUTH_FACEBOOK_SCOPE ="email"
-SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS ={
-    'fields':'id, name, email'
+# SOCIAL_AUTH_FACEBOOK_KEY=""
+# SOCAL_AUTH_FACEBOOK_SECRET=""
+# SOCIAL_AUTH_FACEBOOK_SCOPE ="email"
+# SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS ={
+#     'fields':'id, name, email'
 
-}
+# }
 
-# CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
