@@ -64,25 +64,48 @@
      
     
 </script>
-
 <style>
-    .gm-ui-hover-effect{
-        display: none !important;
-    }
-    #map {
-        flex: 1;
-    }
-    small {
-        font-size: 12px;
-        line-height:1.2 rem
-    }
-    .card{
-        border:none;
-    }
-    #job-details{
-        display:none;
-    }
+    /* Hide the gm-ui-hover-effect element */
+.gm-ui-hover-effect {
+    display: none !important;
+}
+
+/* Styling for the map container */
+#map {
+    flex: 1;
+    height: 400px;
+    margin-bottom: 20px;
+}
+
+/* Styling for small elements */
+small {
+    font-size: 12px;
+    line-height: 1.2rem;
+}
+
+/* Remove border from all cards */
+.card {
+    border: none;
+}
+
+/* Hide the job-details element */
+#job-details {
+    display: none;
+}
+
+/* Style the media container within #job-details */
+#job-details .media {
+    margin-top: 10px;
+}
+
+/* Style the image within the media container */
+#job-details .media img {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
 </style>
+
 {% endblock %}
 
 {% block content %}

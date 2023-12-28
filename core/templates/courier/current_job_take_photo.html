@@ -1,0 +1,50 @@
+{% extends  'courier/base.html'%}
+
+{% block head %}
+<style>
+    body {
+        body {
+            background-color:black;
+        }
+        .btn-back{
+            position:fixed;
+            top:30px;
+            left:30px;
+        }
+        .buttons {
+            position:fixed;
+            botton:20px;
+            left:0;
+            right:0;
+            text-align:center;
+        }
+
+        #take-photo-step {
+            height:100%;
+            display:flex;
+            align-items:center;
+        }
+        video{
+            width:100%;
+            height:auto;
+        }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div id="take-photo-step">
+    <video id="webcam">autoplay playsinline</video>
+    <canvas id="canvas" class="d-none"></canvas>
+
+    <a href="{% url 'courier:current_job' %}" class="btn-back"
+    <i class="fas fa chevron-left text-light"></i>
+</a>
+
+    <div class="button">
+        <a href="#" class="btn btn-warning">Take Pickup Photo</a>
+
+    </div>
+
+</div>
+{% endblock %}

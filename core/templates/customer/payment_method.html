@@ -1,6 +1,4 @@
-<!-- Your HTML template -->
 {% extends 'customer/base.html' %}
-{% load bootstrap4 %}
 
 {% block head %}
 <script src="https://js.stripe.com/v3"></script>
@@ -57,13 +55,15 @@
             </div>
         {% endif %}
 
-        <form id="setup-form" data-secret="{{ client_secret }}" method="POST">
+        <form id="setup-form" data-secret="{{ client_secret }}" method="POST" class="needs-validation">
             {% csrf_token %}
             {% if not request.user.customer.stripe_payment_method_id %}
-                <div id="card-element"></div>
-                <button class="btn btn-warning mt-3" type="submit">
-                    Save Card
-                </button>
+                <div class="form-group">
+                    <label for="card-element">Card Details</label>
+                    <div id="card-element" class="form-control"></div>
+                    <div class="invalid-feedback">Please enter valid card details.</div>
+                </div>
+                <button class="btn btn-warning mt-3" type="submit">Save Card</button>
             {% endif %}
         </form>
     </div>
@@ -104,6 +104,15 @@
                         window.location.reload();
                     }
                 });
+            });
+
+            // Client-side form validation
+            setupForm.addEventListener('submit', function (event) {
+                if (!setupForm.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                setupForm.classList.add('was-validated');
             });
         }
     </script>

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}  <!-- Use crispy_forms_tags instead of bootstrap4 -->
+{% load crispy_forms_tags %}
 
 {% block content %}
 <div class="container-fluid mt-5">
@@ -16,9 +16,12 @@
                     </b>
                 </h4>
 
-                <form method="POST" class="crispy-form">  <!-- Use the 'crispy-form' class -->
+                <form method="POST">
                     {% csrf_token %}
-                    {% crispy form %}  <!-- Use crispy form rendering -->
+                    
+                    <!-- Replace form rendering with Crispy Forms syntax -->
+                    {{ form|crispy }}
+                    
                     <button type="submit" class="btn btn-warning btn-block">Sign Up</button>
                     <p class="text-center mt-3">
                         Already have an Account? <a href="/sign-in/next={{ request.GET.next }}"><b>Sign In</b></a>

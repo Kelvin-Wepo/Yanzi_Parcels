@@ -1,23 +1,28 @@
+from crispy_forms.helper import FormHelper  
+from crispy_forms.layout import Layout, Submit
 from django import forms
 from django.contrib.auth.models import User
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
+
 from core.models import Customer, Job
+
 
 class BasicUserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('first_name', 'last_name')
 
+
 class BasicCustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ('avatar',)
 
+
 class JobCreateStep1Form(forms.ModelForm):
     class Meta:
         model = Job
         fields = ('name', 'description', 'category', 'size', 'quantity', 'photo')
+
 
 class JobCreateStep2Form(forms.ModelForm):
     pickup_address = forms.CharField(required=True)
@@ -39,6 +44,7 @@ class JobCreateStep2Form(forms.ModelForm):
             'pickup_phone',
             Submit('submit', 'Next')
         )
+
 
 class JobCreateStep3Form(forms.ModelForm):
     delivery_address = forms.CharField(required=True)

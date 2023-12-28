@@ -11,6 +11,11 @@ var deliveryLat =parseFloat("{{ job.delivery_lat}}");
 var deliveryLng =parseFloat("{{ job.delivery_lng}}");
 
 function initMap() {
+    
+    if (!document.getElementById("map")){
+        return;
+    }
+
 const directionsService = new google.maps.DirectionService();
 const directionRenderer = new google.maps.DirectionRenderer();
 const map = new google.maps.Map(document.getElementById("map"),{
@@ -52,7 +57,10 @@ directionService.route(
             position: leg.end_location,
             map:map,
             icon:static "img/pngwing.com (3).png"
-         });   
+         }); 
+
+         updateCourierPosition(map);
+           
         }else {
             window.alert(Directions request failed due to " + status);
         }
@@ -60,6 +68,36 @@ directionService.route(
 );
 }
 
+
+function updateCourierPosition(map) {
+    // Check if geolocation is supported
+    if (navigator.geolocation) {
+        // Watch for changes in the courier's position
+        navigator.geolocation.watchPosition(
+            pos => {
+                const courierPosition = new google.maps.Marker({
+                    position: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+                    map,
+                    icon: static 'img/pngwing.com (4).png'
+                });
+
+                // If the courier marker already exists, update its position
+                if (window.courierMarker) {
+                    window.courierMarker.setPosition(courierPosition.getPosition());
+                } else {
+                    // Otherwise, store the marker reference
+                    window.courierMarker = courierPosition;
+                }
+
+                // Pan the map to the courier's position
+                map.panTo(courierPosition.getPosition());
+            },
+            err => console.error(err)
+        );
+    } else {
+        console.error("Geolocation is not supported");
+    }
+}
 </script>
 
 <style>
@@ -68,7 +106,7 @@ directionService.route(
     }
     small {
         font-size: 12px;
-        line-height:1.2 rem
+        line-height:1.2 rem;
     }
     .card{
         border:none;
@@ -78,7 +116,14 @@ directionService.route(
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column h-100" style="padding-bottom:60px">
+
+<div class="d-flex flex-column h-100 text-center" style="padding-bottom: 60px">
+    <div class="btn-group mt-1 mb-1 align-item-center" role="group">
+        <a href="#" class="btn btn-warning">Current Job</a>
+        <a href="#" class="btn outline btn-warning">Archived Jobs</a>
+    </div>
+</div>
+
     <div id="map"></div>
 
     <div class="card">
@@ -109,8 +154,26 @@ directionService.route(
                     </div>
                 </div>
             </div>
+            {% comment %} <a href = "{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">
+                Pickup
+            </href> {% endcomment %}
+            
+            {% if job %}
+            <a href="{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">Take Photo</a>
+        {% else %}
+            <!-- Handle the case where job is None -->
+            <p>No job found.</p>
+        {% endif %}
+        
+
         </div>
     </div>
+
+{% comment %} {% else %} {% endcomment %}
+
+<div id="main" class="text-center">
+    <p>You have no Job Now. Let's a new one.</p>
+</div>
 
     {% include 'courier/bottom_tabs.html' %}
 </div>
