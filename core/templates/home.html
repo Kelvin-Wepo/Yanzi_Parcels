@@ -1,4 +1,5 @@
 {% extends 'base.html'%}
+{% load static %}
 
 {% block content %}
 <div class="container">
@@ -8,7 +9,10 @@
         </div>
 
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card text-center">
+                <div class="card-img-top-wrapper justify-content-center align-items-center">
+                    <img src="{% static 'img/Customer.png' %}" class="card-img-top" alt="Courier Image" style="width: 150px; height: auto;">
+                </div>
                 <div class="card-body">
                     <h5 class="card-title">CUSTOMER</h5>
                     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
@@ -16,9 +20,13 @@
                 </div>
             </div>
         </div>
+        
 
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card text-center">
+                <div class="card-img-top-wrapper d-flex justify-content-center align-items-center">
+                    <img src="{% static 'img/Courier.png' %}" class="card-img-top" alt="Courier Image" style="width: 150px; height: auto;">
+                </div>
                 <div class="card-body">
                     <h5 class="card-title">COURIER</h5>
                     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
@@ -26,6 +34,7 @@
                 </div>
             </div>
         </div>
+        
     </div>
 </div>
 
