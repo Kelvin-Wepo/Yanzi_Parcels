@@ -18,43 +18,63 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <style>
         body {
+                margin: 0;
+                padding: 0
             font-family: 'Catamaran', sans-serif;
         }
     </style>
 
-    {% block head %}{% endblock %}
+    {% block head %}
+
+    <style>
+        .card-img-top-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-img-top {
+            transition: opacity 0.6s;
+        }
+        
+        .card-img-top:hover {
+            opacity: 0.95; 
+        }
+</style>
+
+    {% endblock %}
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg bg-warning">
-        <a class="navbar-brand" href="/">Yanzi Parcels</a>
-
-        {% if not request.user.is_authenticated %}
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Customer</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Courier</a>
-                </li>
-            </ul>
-        </div>
-
-        {% else %}
-        <form class="form-inline ml-auto">
-            <span class="mt-4">{{ request.user.get_full_name|title }}</span>
-            <a href="/sign-out" class="btn btn-outline-dark">Sign Out</a>
-        </form>
-        {% endif %}
-    </nav>
-
-    {% block content %}{% endblock %}
-
+    <body>
+        <nav class="navbar navbar-expand-lg bg-warning">
+            <a class="navbar-brand" href="/">
+                <img src="{% static 'img/logo.png'%}" alt="Yanzi Parcels Logo" height="50">
+                Yanzi Parcels
+            </a>
+            {% if not request.user.is_authenticated %}
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Customer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Courier</a>
+                        </li>
+                    </ul>
+                </div>
+            {% else %}
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <span class="mt-4 ml-auto mr-4">{{ request.user.get_full_name|title }}</span>
+                <a href="/sign-out" class="btn btn-outline-dark" style="transition: background-color 0.3s;">Sign Out</a>
+            </div>
+            {% endif %}
+        </nav>
+    
+        {% block content %}{% endblock %}
+    
       <footer class="text-center mt-5 mb-5">
         &copy; Created by Kwepo
     </footer> 
