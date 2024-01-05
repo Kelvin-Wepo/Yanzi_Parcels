@@ -1,11 +1,12 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-lg-12">
-            <h1 class="text-center mt-5 mb-5">Welcome to Yanzi Parcels</h1>
+        <div class="col-lg-12 mt-5 text-center">
+            <h1>Welcome to Yanzi Parcels</h1>
+            <p id="current_datetime">Current Date and Time: {{ current_datetime|date:"F d, Y H:i:s" }}</p>
         </div>
 
         <div class="col-lg-6 mb-4">
@@ -21,7 +22,6 @@
             </div>
         </div>
         
-
         <div class="col-lg-6 mb-4">
             <div class="card text-center">
                 <div class="card-img-top-wrapper d-flex justify-content-center align-items-center">
@@ -38,10 +38,15 @@
     </div>
 </div>
 
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const formattedDatetime = `${now.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false })}`;
+        document.getElementById('current_datetime').textContent = formattedDatetime;
+    }
+
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+</script>
 
 {% endblock %}
-
-
-
-
-
