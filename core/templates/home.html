@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block content %}
+{% comment %} <button onclick="toggleDarkMode()" style="position: fixed; top: 10px; right: 10px; background-color: black; color: white; background-image: url('{% static "img/darkmode.png" %}'); background-size: cover; width: 40px; height: 40px;"></button> {% endcomment %}
+
 <div class="container">
     <div class="row">
         <div class="col-lg-12 mt-5 text-center">
@@ -38,15 +40,37 @@
     </div>
 </div>
 
+
 <script>
+    // Function to toggle dark mode
+    function toggleDarkMode() {
+        const body = document.body;
+        body.classList.toggle('dark-mode');
+
+        // Save dark mode preference in localStorage
+        const isDarkMode = body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    // Function to update date and time
     function updateDateTime() {
         const now = new Date();
         const formattedDatetime = `${now.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false })}`;
         document.getElementById('current_datetime').textContent = formattedDatetime;
     }
 
+    // Update date and time every second
     setInterval(updateDateTime, 1000);
+    // Initial update
     updateDateTime();
+
+    // Check and apply dark mode preference
+    document.addEventListener('DOMContentLoaded', () => {
+        const storedDarkMode = localStorage.getItem('darkMode');
+        if (storedDarkMode && storedDarkMode === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    });
 </script>
 
 {% endblock %}
