@@ -1,0 +1,62 @@
+{% extends 'courier/base.html' %}
+
+{% block head %}
+<style>
+    small {
+        font-size: 12px;
+        line-height: 1.2rem;  /* Corrected property name to line-height */
+    }
+    .card {
+        border: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column h-100 text-center" style="padding-bottom: 60px">
+    <div class="btn-group mt-1 mb-1 align-item-center" role="group">
+        <a href="{% url 'courier:current_job' %}" class="btn btn-outline-warning">Current Job</a>
+        <a href="{% url 'courier:archived_jobs' %}" class="btn btn-warning ml-4">Archived Jobs</a>
+    </div>
+</div>
+
+{% if jobs %}
+    {% for job in jobs %}
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="media">
+                    <img src="{{ job.photo.url }}" class="rounded-lg mr-3" width="50px" height="50px">
+                    <div class="media-body">
+                        <b>{{ job.name }}</b>
+                        <div class="d-flex">
+                            <div class="flex-grow-1 mr-2">
+                                <small class="text-success">
+                                    <i class="fas fa-car"></i><span>{{ job.distance }}</span> Km
+                                    <i class="far fa-clock ml-2"></i><span>{{ job.duration }}</span> Mins
+                                </small>
+                                <div class="d-flex align-items-center mt-2">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <small class="text-secondary ml-2">{{ job.pickup_address }}</small>
+                                </div>
+                                <div class="d-flex align-items-center mt-2">
+                                    <i class="fas fa-flag-checkered"></i>
+                                    <small class="text-secondary ml-2">{{ job.delivery_address }}</small>
+                                </div>
+                                Ksh.<h3>{{ job.price }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">Take Photo</a>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div id="main" class="text-center">
+        <p>You have no Job Now. Let's find a new one.</p>
+    </div>
+{% endif %}
+
+{% include 'courier/bottom_tabs.html' %}
+</div>
+{% endblock %}
