@@ -1,5 +1,5 @@
 {% extends 'courier/base.html' %} 
-{ % load static %}
+{% load static %}
 
 {% block head %}
 
@@ -50,13 +50,13 @@ directionService.route(
          new google.maps.Marker({
             position: leg.start_location,
             map:map,
-            icon: static "img/pngwing.com (2).png"
+            icon: static "img/start.png"
          });
 
          new google.maps.Marker({
             position: leg.end_location,
             map:map,
-            icon:static "img/pngwing.com (3).png"
+            icon:static "img/end   .png"
          }); 
 
          updateCourierPosition(map);
@@ -71,6 +71,9 @@ directionService.route(
 
 function updateCourierPosition(map) {
     // Check if geolocation is supported
+    const jobSocket = new WebSocket(
+        "ws {% if request.get_host != 'localhost:8000'%}${% endif %}://" + window.location.host + "/ws/jobs/{{ job.id}}/"
+    );
     if (navigator.geolocation) {
         // Watch for changes in the courier's position
         navigator.geolocation.watchPosition(
@@ -91,6 +94,15 @@ function updateCourierPosition(map) {
 
                 // Pan the map to the courier's position
                 map.panTo(courierPosition.getPosition());
+                try{
+                    jobSocket.send(JSON.stringify({
+                        job:{
+                          courier_lat: pos.coords.latitude,
+                          courier_lat: pos.coords.longitude,
+
+                        }
+                    }))
+                }
             },
             err => console.error(err)
         );
@@ -154,17 +166,17 @@ function updateCourierPosition(map) {
                     </div>
                 </div>
             </div>
-            {% comment %} <a href = "{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">
-                Pickup
-            </href> {% endcomment %}
-            
+             <a href = "{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">
+                {% if job.status == 'picking'%}Pickup{% else %}Drop-off{% endif %}
+             </a> 
+{% comment %}             
             {% if job %}
             <a href="{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">Take Photo</a>
         {% else %}
             <!-- Handle the case where job is None -->
             <p>No job found.</p>
         {% endif %}
-        
+         {% endcomment %}
 
         </div>
     </div>

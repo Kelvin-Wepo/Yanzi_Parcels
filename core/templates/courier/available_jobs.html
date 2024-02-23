@@ -59,6 +59,10 @@
         $("#distance").html(job.distance);
         $("#price").html(job.price);
     }
+
+    messaging.onmessage((payload) => {
+        window.location.reload();
+    })
     
     
      

@@ -24,4 +24,52 @@
     </a>
     <h5 class="mt-1 mb-0">Available Jobs</h5>
 </div>
+
+<div class= "container-fluid" style="padding-top:80px">
+    <div class="media">
+        <img src="{{ job.photo.url }}" class="rounded-lg mr-3" width="100" height= "100">
+        <div class="media-body">
+            <h4>{{job.name}}</h4>
+            <span>{{job. get_size_display}} Size</span>
+            <span>{{job.quantity}} Items(s)</span>
+            <span>Ksh.{{job.price}}</span>
+
+        </div>
+
+
+    </div>
+
+</div>
+<hr/>
+
+<div class = "d-flex align-items-center text-secondary mb-3">
+    <i class ="fas fa-map-marker-alt"></i>
+    <span class= "ml-2">{{job.pickup_address}}</span>
+</div>
+
+<div class= "d-flex align-items-center text-secondary mb-2">
+    <i class="fas fa-flag-checkered"></i>
+    <span class= "ml-2">{{job.delivery_address}}</span>
+</div>
+<hr/>
+
+<b class="text-secondary">CUSTOMER</b>
+<div class="media align-items-center mt-2">
+    <img
+     src="{% if job.customer.avatar %}{{ job.customer.avatar.url}}{% else%}{% static 'img/avatar.png'%} {% endif%}"
+     class="rounded-circle mr-3" width="60" height="60">
+     <div class= "media-body">
+        <h5 class= "text-warning">{{job.customer.user.get_full_name}}</h5>
+        <span>{{job.customer.phone_number}}</span>
+     </div>
+</div>
+<hr/>
+
+<form method="POST">
+    {% csrf_token %}
+    <button class="btn btn-warning btn-block">Accept this Job
+</form>
+
+</div>
+
 {% endblock %}

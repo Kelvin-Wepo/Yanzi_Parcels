@@ -19,9 +19,12 @@ from django.contrib.auth import views as auth_views
 from core import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 
-app_name = 'core'
+# app_name = 'core'
+
+from core import views,consumers
 
 from core.customer import views as customer_views
 from core.courier import views as courier_views, apis as courier_apis
@@ -41,15 +44,21 @@ courier_urlpatterns = [
     path('jobs/available/',courier_views.available_jobs_page, name="available_jobs"),
     path('jobs/available/<id>',courier_views.available_job_page, name="available_job"),
     path('jobs/current/', courier_views.current_job__page, name="current_job"),
-    path('jobs/current/<id>/take_photo/', courier_views.current_job_take_photo_page, name="current_job_take_photo"),
-
+    path('jobs/current/<int:id>/take_photo/', courier_views.current_job_take_photo_page, name="current_job_take_photo"),
+    path('jobs/complete/', courier_views.job_complete_page, name="job_complete"),
+    path('jobs/archived/', courier_views.archived_jobs_page, name="archived_jobs"),
+    path('jobs/archived/', courier_views.profile_page, name="profile"),
+    path('payout_method/', courier_views.payout_method_page,name="payout_method"),
+   
 
 
 
 
 
      path('api/jobs/available/',courier_apis.available_jobs_api, name="available_jobs_api"),
-]
+     path('api/jobs/current/<id>/update/',courier_apis.current_job_update_api, name="current_job_update_api"),
+     path('api/fcm-token/update/', courier_apis.fcm_token_update_api, name="fcm_token_update_api"),
+ ]
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -60,7 +69,12 @@ urlpatterns = [
     path('sign-up/', views.sign_up, name='sign_up'),
     path('customer/', include((customer_urlpatterns, 'customer'))),
     path('courier/', include((courier_urlpatterns, 'courier'))),
+    path ('firebase-messaging-sw.js',(TemplateView.as_view(template_name="firebase-messaging-sw.js",content_type="application/javascript",))),
+
 ]
 
+websocket_urlpatterns = [
+    path('ws/jobs/<job_id>/',consumers.JobConsumer.as_asgi())
+]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

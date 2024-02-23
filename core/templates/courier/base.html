@@ -6,13 +6,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Courier| Yanzi Parcels</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'img/logo.png' %}">
+    <link rel="icon" type="shortcut icon" href="{% static 'img/logo.png' %}">
+    <link rel="apple-touch-icon"sizes="180x180"href="{% static 'img/logo.png' %}">
+    <lnk rel="manifest" href="{% static 'manifest.json' %}"
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.9.0/css/all.css">
     <link href='https://fonts.googleapis.com/css?family=Catamaran:400,100,300' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-   
+    {% include 'load_firebase.html' %}
 
-
+         <script>
+            cons messaging = firebase.messaging():
+            messaging.getToken({
+                validKey:""
+            })
+            .then((currentToken)=> {
+              console.log(currentToken):
+              if (currentToken) {
+                fetch('{% url "courier:fcm_token_update_api" %}?fcm_token= + currentToken'):
+              }
+            })
+            .catch((err)=>{
+                console.log('An error occurred while retrieving token', err);
+            })
+         </script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -38,6 +55,27 @@
 <body>
 
     {% block content %}{% endblock %}
+
+
+    <script src="https://unpkg.com/bootoast@1.0.1/dist/bootoast.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/bootoast@1.0.1/dist/bootoast.min.css">
+
+    <!-- Script to show toasts -->
+    <script>
+        function toast(message, type) {
+            bootoast.toast({
+                position: 'centerBottom',
+                message: message,
+                type: type,
+            });
+        }
+
+        {% if messages %}
+        {% for message in messages %}
+        toast('{{ message }}', '{{ message.tags }}');
+        {% endfor %}
+        {% endif %}
+    </script>
 
 </body>
 

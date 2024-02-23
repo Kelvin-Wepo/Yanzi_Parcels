@@ -25,6 +25,11 @@
                          var deliveryLat =parseFloat("{{ job.delivery_lat}}");
                          var deliveryLng =parseFloat("{{ job.delivery_lng}}");
 
+
+                         var courierLat =parseFloat("{{ job.courier.lat}}");
+                         var courierLng =parseFloat("{{ job.courier.lng}}");
+                          
+
                          function initMap() {
                             const directionsService = new google.maps.DirectionService();
                             const directionRenderer = new google.maps.DirectionRenderer();
@@ -60,14 +65,20 @@
                                      new google.maps.Marker({
                                         position: leg.start_location,
                                         map:map,
-                                        icon:"{% static 'img/start.png'%}"
+                                        icon:"{% static 'img/start.png' %}"
                                      });
 
                                      new google.maps.Marker({
                                         position: leg.end_location,
                                         map:map,
-                                        icon:"{% static 'img/end.png'%}"
-                                     });   
+                                        icon:"{% static 'img/end.png' %}"
+                                     }); 
+                                     
+                                     window.courierMarker = new google.maps.Marker({
+                                        position: new google.maps.LatLng(courierLat,courierLng),
+                                        map,
+                                        icon:'/static/img/courier.png',
+                                     })
                                     }else {
                                         window.alert(Directions request failed due to " + status);
                                     }
@@ -75,6 +86,37 @@
                             );
                          }
 
+
+                         const jobSocket = new WebSocket(
+                            "ws {% if request.get_host != 'localhost:8000'%}${% endif %}://" + window.location.host + "/ws/jobs/{{ job.id}}/"
+                        );
+
+                        //Execute this function whenever this page receives an event from Job Consumer via WebSocket
+                        jobSocket.onmessage = function(e) {
+                           var data = JSON.parse(e.data);
+                           var job = data.job;
+                           console.log(job);
+
+                           if (job.courier.lat && job.courier.lng){
+                            var courierPosition = new google.maps.LatLng(job.courier_lat, job.courier.lng);
+                            window.courierMarker.setPosition(courierPosition);
+                           }
+
+                           if (job.status) {
+                            $("#job.status").html(job.status);
+                            $("form").css("display","none");
+
+                           }
+                           if (job.status) {
+                            $("#pickup_photo").html('img src="' + job.pickup_photo + '" class="rounded-lg photo"width="130" height="130">');
+
+                           }
+
+                           if (job.status) {
+                            $("#delvery_photo").html('img src="' + job.delivery_photo + '" class="rounded-lg photo"width="130" height="130">');
+
+                           }
+                        }
                             </script>
                         {% endblock%}
 
@@ -170,7 +212,7 @@
 
                         </div>  
 
-                    {% comment %} MAP AREA {% endcomment %}
+                        # Map area
 
                     <div class="d-flex justify-content-between">
                         <b class="text-secondary">TRACK DELIVERY</b>

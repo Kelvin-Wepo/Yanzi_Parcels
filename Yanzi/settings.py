@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-suhrp7jqr5rjs1fx!yr-1+%gs$k%4a117v1(qp7e6u$$3a3=*_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*",]
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
      'crispy_forms',
      'bootstrap4',
+     'channels',
 ]
 
 MIDDLEWARE = [
@@ -168,7 +169,29 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # DEFAULT_FROM_EMAIL ='Yanzi Parcel <no-reply@yanziparcel.localhost>'
 
 
+
+FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR,"yanzi-parcels-firebase-adminsdk-871so-c27093684a.json")
+
 STRIPE_PUBLIC_API_KEY ='pk_test_51OLxrMIhECL0gCBjDJkMCCpbtdvIehnp30mZ8cYfjZgeXV2QsP7uAoisaOK8qSg1epcC9iBWFopI7G8gqv3iCVPV00MkrKBcuE'
 STRIPE_API_SECRET_KEY ='sk_test_51OLxrMIhECL0gCBjBgZSVnVJmCSzfhl7kOxTgJ0N5zsanIjgCUicnJz9h0v631cydfNgMktMXkahB3zXgEyVEXVO00xS7Clr6Z'
 
 GOOGLE_MAP_API_KEY =""
+
+PAYPAL_MODE = "sandbox"
+PAYPAL_CLIENT_ID= "Af8gMF1YL8g-SyYdyaQGyW_IwzPyTdOjnZjkmXB8qwhgSmItVLZ7beKoltcPIdBdF4dbVq-gVUy05pdY"
+PAYPAL_CLIENT_SECRET ="EITj72I0l1RZzYVc-CZK2m-3jvLQuzKFFv4bH8Dmhxx8xjnQ5WmpxNJnZoE48RcRvF-rGURX9__A1Lgv"
+
+NOTIFICATION_URL =""
+
+ASGI_APPLICATION ="yanziparcels.asgi.application"
+
+
+      #channels
+CHANNEL_LAYERS = {
+    'default':{
+        'BACKEND':'channels_redis.core.RedisChannelLayer',
+        'CONFIG':{
+            "hosts":[('127.0.0.1',6379)],
+        },
+    },
+}

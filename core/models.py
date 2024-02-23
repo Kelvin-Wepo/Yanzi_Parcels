@@ -20,6 +20,8 @@ class Courier(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True)
     lat = models.FloatField(default=0)
     lng = models.FloatField(default=0)
+    paypal_email = models.EmailField(max_length=255, blank=True)
+    fcm_token = models.TextField(blank=True)
 
     def __str__(self):
         return self.user.get_full_name()
@@ -86,13 +88,27 @@ class Job(models.Model):
     distance = models.FloatField(default=0)
     price = models.FloatField(default=0)
 
+    pickup_photo = models.ImageField(upload_to='job/pickup_photos/',null=True,blank=True)
+    pickedup_at = models.DateTimeField(null=True,blank=True)
+
+    delivery_photo = models.ImageField(upload_to='job/delivery_photos/',null=True,blank=True)
+    delivered_at = models.DateTimeField(null=True,blank=True)
+
+
     def __str__(self):
         return self.description
 
 class Transaction(models.Model):
+    IN_STATUS = "in"
+    OUT_STATUS = "out"
+    STATUSES =(
+        (IN_STATUS, 'In'),
+        (OUT_STATUS, 'Out'),
+    )
     stripe_payment_intent_id = models.CharField(max_length=255, unique=True)
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     amount = models.FloatField(default=0)
+    status = models.CharField(max_length=20, choices=STATUSES, default=IN_STATUS)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

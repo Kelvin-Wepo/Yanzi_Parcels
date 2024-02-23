@@ -1,29 +1,139 @@
 {% extends 'customer/base.html' %}
-{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+
+
+ {% block head%}
+ {% include 'load_firebase.html' %}
+ {% endblock %}
 
 {% block main %}
-    <b class="text-secondary">Basic Information</b><br/>
-    <div class="card bg-white mt-3 mb-5">
+{% load bootstrap4 %}
+
+<b class="text-secondary">Basic Information</b><br/>
+<div class="card bg-white mt-3 mb-5">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" class="form">
+            {% csrf_token %}
+            {% bootstrap_form user_form %}
+            {% bootstrap_form customer_form %}
+            <input type="hidden" name="action" value="update_profile">
+            <button type="submit" class="btn btn-warning mt-3">Save</button>
+        </form>
+    </div>
+</div>
+
+
+<b class="text-secondary">Change Password</b><br/>
+<div class="card bg-white mt-4 mb-5">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" class="form">
+            {% csrf_token %}
+           {% bootstrap_form password_form %}
+            <input type="hidden" name="action" value="update_password">
+            <button type="submit" class="btn btn-warning mt-3">Save</button>
+        </form>
+    </div>
+</div>
+    <b class="text-secondary">Phone Number</b><br/>
+    <div class="card bg-white mt-4 mb-5">
         <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" class="form">
-                {% csrf_token %}
-                {% crispy user_form %}
-                {% crispy customer_form %}
-                <input type="hidden" name="action" value="update_profile">
-                <button type="submit" class="btn btn-warning mt-3">Save</button>
-            </form>
+
+            <div id ="recaptcha-container"></div>
+            
+            <div id= "get-code"class="input-group mb-3{% if request.user.customer.phone_number %} d-none{% endif %}">
+                <input type="text" class="form-control" placeholder="Your Phone Number" >
+                <div class= "input-group-append">
+                    <button class="btn btn-warning" id="button">Send Code</button>
+                </div>
+            </div>
+
+            <div id= "verify"class="input-group mb-3 mb-3 none">
+                <input type="text" class="form-control" placeholder="Verification Code">
+                <div class= "input-group-append">
+                    <button class="btn btn-warning" id="button">Verify Code</button>
+
+                </div>
+            </div>
+            <div id= "change-phone"class="input-group mb-3{% if not request.user.customer.phone_number %} d-none{% endif %}">
+                <input type="text" class="form-control"disabled value={{ request.user.customer.phone_number}}>
+                <div class= "input-group-append">
+                    <button class="btn btn-warning" id="button">Change</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <b class="text-secondary">Change Password</b><br/>
-    <div class="card bg-white mt-4 mb-5">
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" class="form">
-                {% csrf_token %}
-                {% crispy password_form %}
-                <input type="hidden" name="action" value="update_password">
-                <button type="submit" class="btn btn-warning mt-3">Save</button>
-            </form>
-        </div>
-    </div>
+    <script> 
+        function onVerify(idToken) {
+            var form = document.createElement("form")
+            form.method = "POST"
+
+            var element1 =document.createElement("input");
+            element1.name = "id_token";
+            element1.value = idToken;
+            form.appendChild(element1);
+
+            var element2 =document.createElement("input");
+            element2.name = "id_token";
+            element2.value = "update_phone";
+            form.appendChild(element2);
+
+            var element3 =document.createElement("input");
+            element3.name = "csrfmiddlewaretoken";
+            element3.value = "{{csrf_token}}";
+            form.appendChild(element3);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container',{
+            'size':'invisible'
+        });
+
+
+        $("get-code button").on(click', function(){
+            const phoneNumber = $("#get-code input").val();
+            console.log(phoneNumber);
+
+            firebase.auth().signInWthPhoneNumber(phoneNumber, window.recaptchaVerifier)
+            .them(confirmationResult) => {
+                // SMS sent. Prompt user to type the code from the message,.then
+                // sign in with ConfirmationResult.confirm(code)
+                console.log(confirmationResult);
+                window.confirmationResult = confirmationResult;
+                $("get-code").addClass("d-none");
+                $("veify-code").removeClass("d-none"); 
+        }).catch((error ) => {
+            // Error: SMS not sent.
+            toast(error.message,'error');
+        });
+
+            
+        });
+
+        $("#verify-code button").on(click', function(){
+            const code = $("#verify-code input").val();
+            
+            confirmationResult.confirm(code).then((result) =>{
+                // user signed in successifully
+
+                const user = result.user;
+                console.log(user.phonenumber);
+              
+                user.getIdToken().then(function(idToken))
+                  onVerify(idToken);
+            });
+            }).catch((error)=> {
+                // user couldn't sign in (bad verification code)
+                toast(error.message,'error');
+            });
+        ));
+
+        $("change-phone button").on('click'function(){
+            $("change-phone").addClass("d-none");
+            $("get-code").removeClass("d-none");
+        })
+
+    </script>
 {% endblock %}
