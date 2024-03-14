@@ -166,26 +166,22 @@ function updateCourierPosition(map) {
                     </div>
                 </div>
             </div>
-             <a href = "{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">
-                {% if job.status == 'picking'%}Pickup{% else %}Drop-off{% endif %}
-             </a> 
-{% comment %}             
             {% if job %}
-            <a href="{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">Take Photo</a>
+            <a href="{% url 'courier:current_job_take_photo' job.id %}" class="btn btn-block btn-warning btn-md mt-3">
+                {% if job.status == 'picking' %}
+                    Pickup
+                {% else %}
+                    Drop-off
+                {% endif %}
+            </a>
         {% else %}
-            <!-- Handle the case where job is None -->
             <p>No job found.</p>
         {% endif %}
-         {% endcomment %}
-
+        
+        <div id="main" class="text-center">
+            <p>You have no Job Now. Let's start a new one.</p>
         </div>
-    </div>
-
-{% comment %} {% else %} {% endcomment %}
-
-<div id="main" class="text-center">
-    <p>You have no Job Now. Let's a new one.</p>
-</div>
+        
 
     {% include 'courier/bottom_tabs.html' %}
 </div>
