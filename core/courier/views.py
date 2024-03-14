@@ -1,4 +1,5 @@
 from asgiref.sync import async_to_sync
+from django.http import HttpResponseBadRequest, HttpResponseNotFound
 from channels.layers import get_channel_layer
 
 from django.shortcuts import get_object_or_404, render, redirect
@@ -69,17 +70,20 @@ def current_job__page(request):
     })
 @login_required(login_url="/sign-in/?next=courier/")
 def current_job_take_photo_page(request, id):
-    # Ensure the 'id' parameter is a valid integer
     try:
         job_id = int(id)
     except ValueError:
-        return redirect(reverse('courier:current_job'))
+        # Handle the case where id is not a valid integer
+        return HttpResponseBadRequest("Invalid job ID")
 
-    # Fetch the job instance based on the job_id parameter and courier
     job = get_object_or_404(Job,
                             id=job_id,
                             courier=request.user.courier,
                             status__in=[Job.PICKING_STATUS, Job.DELIVERING_STATUS])
+
+    if not job:
+        # Handle the case where the job does not exist or the user is not assigned to it
+        return HttpResponseNotFound("Job not found")
 
     return render(request, 'courier/current_job_take_photo.html', {
         "job": job,
@@ -112,10 +116,13 @@ def profile_page(request):
     total_jobs = len(jobs)
     total_km =sum(job.distance for job in jobs)
 
+    payout_form = forms.PayoutForm() 
+
     return render(request, 'courier/profile.html',{
         "total_earnings": total_earnings,
         "total_jobs": total_jobs,
-        "total_km":total_km
+        "total_km":total_km,
+        "payout_form": payout_form
     })
 
 @login_required(login_url="/sign-in/?next=courier/")
