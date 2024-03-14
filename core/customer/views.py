@@ -95,7 +95,7 @@ def create_job_page(request):
         step = request.POST.get('step')
 
         if step == '1':
-            step1_form = forms.JobCreationStep1Form(request.POST, request.FILES, instance=creating_job)
+            step1_form = forms.JobCreateStep1Form(request.POST, request.FILES, instance=creating_job)
             if step1_form.is_valid():
                 creating_job = step1_form.save(commit=False)
                 creating_job.customer = current_customer
