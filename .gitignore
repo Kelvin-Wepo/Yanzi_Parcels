@@ -1,4 +1,23 @@
+# Byte-compiled / optimized Python files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
 venv/
-db.sqlite3
-virtual
-pycache
+env/
+
+# Django development settings file
+*.sqlite3
+
+# Log files
+*.log/
+
+# Environment variables file
+.env/
+
+# Static files
+staticfiles/
+
+# Media files
+media/
