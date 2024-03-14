@@ -1,0 +1,1 @@
+web: gunicorn yanzi_parcels.wsgi
