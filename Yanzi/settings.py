@@ -82,20 +82,28 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Yanzi.wsgi.application'
 
 
-db_from_env = dj_database_url.config(default=config('DATABASE_URL'))
+# db_from_env = dj_database_url.config(default=config('DATABASE_URL'))
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.getenv('DATABASE_URL'),
+#         conn_max_age=600,
+#         ssl_require=True,
+#     )
+# }
+
+# db_from_env = dj_database_url.config(default=config('DATABASE_URL'), conn_max_age=600, ssl_require=True)
+# print("DATABASE_URL from environment:", os.environ.get("DATABASE_URL"))
+
+# DATABASES['default'] = dj_database_url.config(default=config('DATABASE_URL'), conn_max_age=600, ssl_require=True)
+
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
-
-db_from_env = dj_database_url.config(default=config('DATABASE_URL'), conn_max_age=600, ssl_require=True)
-print("DATABASE_URL from environment:", os.environ.get("DATABASE_URL"))
-
-DATABASES['default'] = dj_database_url.config(default=config('DATABASE_URL'), conn_max_age=600, ssl_require=True)
 
     
 
@@ -185,7 +193,12 @@ FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR,"yanzi-parcels-firebase-admins
 STRIPE_PUBLIC_API_KEY ='pk_test_51OLxrMIhECL0gCBjDJkMCCpbtdvIehnp30mZ8cYfjZgeXV2QsP7uAoisaOK8qSg1epcC9iBWFopI7G8gqv3iCVPV00MkrKBcuE'
 STRIPE_API_SECRET_KEY ='sk_test_51OLxrMIhECL0gCBjBgZSVnVJmCSzfhl7kOxTgJ0N5zsanIjgCUicnJz9h0v631cydfNgMktMXkahB3zXgEyVEXVO00xS7Clr6Z'
 
-GOOGLE_MAP_API_KEY =""
+CONSTANCE_CONFIG = {
+    'GOOGLE_MAP_API_KEY': ('YOUR_API_KEY', 'Google Maps API Key'),
+}
+
+
+GOOGLE_MAPS_API_KEY='AIzaSyDv4K3Fqma6Y6gcbrAbdAKT9sr7lbKIcoA'
 
 PAYPAL_MODE = "sandbox"
 PAYPAL_CLIENT_ID= "Af8gMF1YL8g-SyYdyaQGyW_IwzPyTdOjnZjkmXB8qwhgSmItVLZ7beKoltcPIdBdF4dbVq-gVUy05pdY"
