@@ -1,119 +1,110 @@
 {% extends 'courier/base.html' %} 
 
 {% block head %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAP_API_KEY }}&callback=initMaps&libraries=places&v=weekly" defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&libraries=places&v=weekly)" defer></script>
 <script>
     function initMap() {
         const map = new google.maps.Map(document.getElementById("map"), {
             zoom: 13,
-            center: { lat: 41.85, lng: -87.65 },
+            center: { lat: -1.286389, lng: 36.817223 }, // Nairobi coordinates
         });
-    
+
         // Fetch available jobs via API
         fetch("{% url 'courier:available_jobs_api' %}")
             .then(response => response.json())
             .then(json => {
-                // console.log(json);
-    
                 // Create a new viewpoint bounds
                 var bounds = new google.maps.LatLngBounds();
-    
+
                 json.jobs.forEach(job => {
-                    const position = { lat: job.pickup_lat, lng: job.delivery_lng };
+                    const position = { lat: job.pickup_lat, lng: job.pickup_lng };
                     const marker = new google.maps.Marker({
-                        position,
-                        map,
+                        position: position,
+                        map: map,
                     });
-    
-                    // Increase the bounds to take this anchorPoint
+
+                    // Increase the bounds to include this position
                     bounds.extend(position);
-    
-                    new google.maps.InfoWindow({
-                        content: `<small><b>${job.name}</b></small><br/><small>${job.distance} Km</small>`
-                    }).open(map, marker);
-    
-                    // Click event for each Job
+
+                    const contentString = `<div><b>${job.name}</b><br/><small>${job.distance} Km</small></div>`;
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: contentString,
+                    });
+
                     marker.addListener("click", () => {
+                        infoWindow.open(map, marker);
                         showJobDetails(job);
                     });
                 });
-    
-                // Fit these bounds to the map after all markers are added
+
+                // Fit the map to the bounds after all markers are added
                 map.fitBounds(bounds);
+            })
+            .catch(error => {
+                console.error('Error fetching available jobs:', error);
             });
-    }
-    
-    function showJobDetails(job) {
-        // Your function to show job details
-        $("#job-details")
-            .css("display", "block")
-            .on("click", function () {
-                window.location.href = `/courier/jobs/available/${job.id}`;
-            });
-    
-        $("#job-name").html(job.name);
-        $("#job-photo").attr("src", "/media" + job.photo);
-        $("#pickup-address").html(job.pickup_address);
-        $("#delivery-address").html(job.delivery_address);
-        $("#duration").html(job.duration);
-        $("#distance").html(job.distance);
-        $("#price").html(job.price);
     }
 
+    function showJobDetails(job) {
+        // Show job details in the card
+        $("#job-details").css("display", "block");
+        $("#job-name").text(job.name);
+        $("#job-photo").attr("src", "/media" + job.photo);
+        $("#pickup-address").text(job.pickup_address);
+        $("#delivery-address").text(job.delivery_address);
+        $("#duration").text(job.duration);
+        $("#distance").text(job.distance);
+        $("#price").text(job.price);
+    }
+
+    // Reload the page when receiving a message
     messaging.onmessage((payload) => {
         window.location.reload();
-    })
-    
-    
-     
-    
+    });
 </script>
 <style>
     /* Hide the gm-ui-hover-effect element */
-.gm-ui-hover-effect {
-    display: none !important;
-}
+    .gm-ui-hover-effect {
+        display: none !important;
+    }
 
-/* Styling for the map container */
-#map {
-    flex: 1;
-    height: 400px;
-    margin-bottom: 20px;
-}
+    /* Styling for the map container */
+    #map {
+        height: 400px;
+        margin-bottom: 20px;
+    }
 
-/* Styling for small elements */
-small {
-    font-size: 12px;
-    line-height: 1.2rem;
-}
+    /* Styling for small elements */
+    small {
+        font-size: 12px;
+        line-height: 1.2rem;
+    }
 
-/* Remove border from all cards */
-.card {
-    border: none;
-}
+    /* Remove border from all cards */
+    .card {
+        border: none;
+    }
 
-/* Hide the job-details element */
-#job-details {
-    display: none;
-}
+    /* Hide the job-details element */
+    #job-details {
+        display: none;
+    }
 
-/* Style the media container within #job-details */
-#job-details .media {
-    margin-top: 10px;
-}
+    /* Style the media container within #job-details */
+    #job-details .media {
+        margin-top: 10px;
+    }
 
-/* Style the image within the media container */
-#job-details .media img {
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
-
+    /* Style the image within the media container */
+    #job-details .media img {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
 </style>
-
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column h-100" style="padding-bottom:60px">
+<div class="d-flex flex-column h-100" style="padding-bottom: 60px;">
     <div id="map"></div>
 
     <div id="job-details" class="card">
@@ -132,14 +123,14 @@ small {
 
                             <div class="d-flex align-items-center mt-2">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <small id="pick-address" class="text-secondary ml-2"></small>
+                                <small id="pickup-address" class="text-secondary ml-2"></small>
                             </div>
 
                             <div class="d-flex align-items-center mt-2">
                                 <i class="fas fa-flag-checkered"></i>
                                 <small id="delivery-address" class="text-secondary ml-2"></small>
                             </div>
-                            Ksh.<h3 id="price">Price</h3>
+                            <h3 id="price">Ksh. <span></span></h3>
                         </div>
                     </div>
                 </div>

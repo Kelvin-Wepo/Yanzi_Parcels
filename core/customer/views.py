@@ -67,7 +67,7 @@ def profile_page(request):
         "customer_form": customer_form,
         "password_form": password_form
     })
-@login_required(login_url="/sign-in/?next=/customer/")
+
 @login_required(login_url="/sign-in/?next=/customer/")
 def create_job_page(request):
     current_customer = request.user.customer
