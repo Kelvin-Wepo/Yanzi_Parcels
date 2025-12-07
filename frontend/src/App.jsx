@@ -32,6 +32,11 @@ import CourierVehicles from './pages/courier/Vehicles'
 import BusinessPortal from './pages/business/BusinessPortal'
 import BusinessRegistration from './pages/business/BusinessRegistration'
 
+// Hub pages
+import HubPartnerPortal from './pages/HubPartnerPortal'
+import HubRegistrationPage from './pages/HubRegistrationPage'
+import HubFinderPage from './pages/HubFinderPage'
+
 // Landing page
 import Home from './pages/Home'
 
@@ -78,6 +83,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Hub routes */}
+        <Route path="/hub/register" element={<HubRegistrationPage />} />
+        <Route path="/hub/partner" element={<HubPartnerPortal />} />
+        <Route path="/hub/finder" element={<HubFinderPage />} />
 
         {/* Customer routes */}
         <Route

@@ -53,6 +53,13 @@ from core.api.business import (
     BusinessCreditViewSet,
     BusinessInvoiceViewSet,
 )
+from core.api.hubs import (
+    HubViewSet,
+    HubDeliveryViewSet,
+    HubTransactionViewSet,
+    HubRatingViewSet,
+    HubPayoutViewSet,
+)
 from core.api.addresses import (
     SavedAddressListView,
     SavedAddressDetailView,
@@ -279,5 +286,65 @@ urlpatterns = [
     path('business/invoices/<uuid:pk>/mark-paid/', BusinessInvoiceViewSet.as_view({
         'post': 'mark_paid',
     }), name='api_mark_invoice_paid'),
+
+    # Micro-Hub Network endpoints
+    path('hubs/', HubViewSet.as_view({
+        'get': 'list',
+        'post': 'create',
+    }), name='api_hubs'),
+    path('hubs/<uuid:pk>/', HubViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy',
+    }), name='api_hub_detail'),
+    path('hubs/nearby/', HubViewSet.as_view({
+        'get': 'nearby',
+    }), name='api_nearby_hubs'),
+    path('hubs/<uuid:pk>/dashboard/', HubViewSet.as_view({
+        'get': 'dashboard',
+    }), name='api_hub_dashboard'),
+    path('hubs/<uuid:pk>/verify-pickup/', HubViewSet.as_view({
+        'post': 'verify_pickup',
+    }), name='api_hub_verify_pickup'),
+    
+    # Hub Deliveries endpoints
+    path('hub-deliveries/', HubDeliveryViewSet.as_view({
+        'get': 'list',
+        'post': 'create',
+    }), name='api_hub_deliveries'),
+    path('hub-deliveries/<uuid:pk>/', HubDeliveryViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+    }), name='api_hub_delivery_detail'),
+    path('hub-deliveries/<uuid:pk>/mark-arrived/', HubDeliveryViewSet.as_view({
+        'post': 'mark_arrived',
+    }), name='api_hub_delivery_arrived'),
+    path('hub-deliveries/my-deliveries/', HubDeliveryViewSet.as_view({
+        'get': 'my_deliveries',
+    }), name='api_my_hub_deliveries'),
+    
+    # Hub Transactions endpoints
+    path('hub-transactions/', HubTransactionViewSet.as_view({
+        'get': 'list',
+    }), name='api_hub_transactions'),
+    path('hub-transactions/<uuid:pk>/', HubTransactionViewSet.as_view({
+        'get': 'retrieve',
+    }), name='api_hub_transaction_detail'),
+    
+    # Hub Ratings endpoints
+    path('hub-ratings/', HubRatingViewSet.as_view({
+        'get': 'list',
+        'post': 'create',
+    }), name='api_hub_ratings'),
+    
+    # Hub Payouts endpoints
+    path('hub-payouts/', HubPayoutViewSet.as_view({
+        'get': 'list',
+    }), name='api_hub_payouts'),
+    path('hub-payouts/<uuid:pk>/', HubPayoutViewSet.as_view({
+        'get': 'retrieve',
+    }), name='api_hub_payout_detail'),
 ]
 

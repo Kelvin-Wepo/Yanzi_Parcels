@@ -1224,3 +1224,316 @@ class BusinessAPILog(models.Model):
     def __str__(self):
         return f"{self.business.business_name} - {self.endpoint} ({self.status_code})"
 
+
+# =============================================================================
+# Micro-Hub Network for Hyper-Local Delivery
+# =============================================================================
+class Hub(models.Model):
+    """Local shop/kiosk serving as pickup/dropoff point"""
+    STATUS_PENDING = 'pending'
+    STATUS_ACTIVE = 'active'
+    STATUS_INACTIVE = 'inactive'
+    STATUS_SUSPENDED = 'suspended'
+    
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending Approval'),
+        (STATUS_ACTIVE, 'Active'),
+        (STATUS_INACTIVE, 'Inactive'),
+        (STATUS_SUSPENDED, 'Suspended'),
+    ]
+    
+    HUB_TYPE_SHOP = 'shop'
+    HUB_TYPE_KIOSK = 'kiosk'
+    HUB_TYPE_PHARMACY = 'pharmacy'
+    HUB_TYPE_PETROL = 'petrol_station'
+    HUB_TYPE_SUPERMARKET = 'supermarket'
+    HUB_TYPE_OTHER = 'other'
+    
+    HUB_TYPE_CHOICES = [
+        (HUB_TYPE_SHOP, 'Shop'),
+        (HUB_TYPE_KIOSK, 'Kiosk'),
+        (HUB_TYPE_PHARMACY, 'Pharmacy'),
+        (HUB_TYPE_PETROL, 'Petrol Station'),
+        (HUB_TYPE_SUPERMARKET, 'Supermarket'),
+        (HUB_TYPE_OTHER, 'Other'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    partner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hubs')
+    
+    # Hub details
+    hub_name = models.CharField(max_length=255)
+    hub_type = models.CharField(max_length=20, choices=HUB_TYPE_CHOICES, default=HUB_TYPE_SHOP)
+    hub_code = models.CharField(max_length=20, unique=True)  # e.g., HUB001
+    
+    # Location
+    address = models.CharField(max_length=255)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    city = models.CharField(max_length=100)
+    area = models.CharField(max_length=100)  # Neighborhood/Estate
+    
+    # Contact
+    contact_name = models.CharField(max_length=255)
+    contact_phone = models.CharField(max_length=20)
+    contact_email = models.EmailField(blank=True)
+    
+    # Operating hours
+    opening_time = models.TimeField(default='08:00:00')
+    closing_time = models.TimeField(default='20:00:00')
+    operates_weekends = models.BooleanField(default=True)
+    
+    # Capacity & Pricing
+    storage_capacity = models.IntegerField(default=50)  # Max parcels
+    current_occupancy = models.IntegerField(default=0)
+    commission_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)  # % per delivery
+    
+    # Payment details
+    mpesa_number = models.CharField(max_length=20)
+    mpesa_name = models.CharField(max_length=255)
+    bank_account = models.CharField(max_length=50, blank=True)
+    
+    # Status & Verification
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    is_verified = models.BooleanField(default=False)
+    verification_date = models.DateTimeField(null=True, blank=True)
+    
+    # Ratings
+    average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    total_ratings = models.IntegerField(default=0)
+    
+    # Stats
+    total_deliveries = models.IntegerField(default=0)
+    total_earnings = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = 'Hubs'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.hub_name} ({self.hub_code})"
+    
+    def is_available(self):
+        """Check if hub can accept more parcels"""
+        return self.status == self.STATUS_ACTIVE and self.current_occupancy < self.storage_capacity
+    
+    def update_rating(self, new_rating):
+        """Update average rating"""
+        total = (self.average_rating * self.total_ratings) + new_rating
+        self.total_ratings += 1
+        self.average_rating = total / self.total_ratings
+        self.save()
+
+
+class HubDelivery(models.Model):
+    """Parcel stored at hub for pickup"""
+    STATUS_IN_TRANSIT_TO_HUB = 'in_transit_to_hub'
+    STATUS_AT_HUB = 'at_hub'
+    STATUS_READY_FOR_PICKUP = 'ready_for_pickup'
+    STATUS_PICKED_UP = 'picked_up'
+    STATUS_RETURNED = 'returned'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUS_CHOICES = [
+        (STATUS_IN_TRANSIT_TO_HUB, 'In Transit to Hub'),
+        (STATUS_AT_HUB, 'At Hub'),
+        (STATUS_READY_FOR_PICKUP, 'Ready for Pickup'),
+        (STATUS_PICKED_UP, 'Picked Up'),
+        (STATUS_RETURNED, 'Returned'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    job = models.OneToOneField(Job, on_delete=models.CASCADE, related_name='hub_delivery')
+    hub = models.ForeignKey(Hub, on_delete=models.CASCADE, related_name='deliveries')
+    
+    # Recipient info
+    recipient_name = models.CharField(max_length=255)
+    recipient_phone = models.CharField(max_length=20)
+    recipient_email = models.EmailField(blank=True)
+    
+    # Pickup details
+    pickup_code = models.CharField(max_length=8, unique=True)  # OTP for pickup verification
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_IN_TRANSIT_TO_HUB)
+    
+    # Timeline
+    arrived_at_hub = models.DateTimeField(null=True, blank=True)
+    notified_recipient_at = models.DateTimeField(null=True, blank=True)
+    picked_up_at = models.DateTimeField(null=True, blank=True)
+    
+    # Payment
+    is_cod = models.BooleanField(default=False)
+    cod_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    cod_collected = models.BooleanField(default=False)
+    
+    # Hub commission
+    hub_commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    commission_paid = models.BooleanField(default=False)
+    
+    # Photos
+    dropoff_photo = models.ImageField(upload_to='hub_dropoffs/', blank=True, null=True)
+    pickup_photo = models.ImageField(upload_to='hub_pickups/', blank=True, null=True)
+    
+    # Notes
+    special_instructions = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = 'Hub Deliveries'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.hub.hub_name} - {self.recipient_name}"
+    
+    def generate_pickup_code(self):
+        """Generate unique 8-digit pickup code"""
+        import random
+        while True:
+            code = str(random.randint(10000000, 99999999))
+            if not HubDelivery.objects.filter(pickup_code=code).exists():
+                self.pickup_code = code
+                self.save()
+                return code
+    
+    def mark_arrived(self):
+        """Mark parcel as arrived at hub"""
+        self.status = self.STATUS_AT_HUB
+        self.arrived_at_hub = timezone.now()
+        self.hub.current_occupancy += 1
+        self.hub.save()
+        self.save()
+    
+    def mark_picked_up(self):
+        """Mark parcel as picked up"""
+        self.status = self.STATUS_PICKED_UP
+        self.picked_up_at = timezone.now()
+        self.hub.current_occupancy -= 1
+        self.hub.total_deliveries += 1
+        self.hub.save()
+        self.save()
+
+
+class HubTransaction(models.Model):
+    """Financial transactions for hub commissions"""
+    TRANSACTION_COMMISSION = 'commission'
+    TRANSACTION_COD = 'cod_collection'
+    TRANSACTION_PAYOUT = 'payout'
+    TRANSACTION_ADJUSTMENT = 'adjustment'
+    
+    TRANSACTION_TYPES = [
+        (TRANSACTION_COMMISSION, 'Commission Earned'),
+        (TRANSACTION_COD, 'COD Collection'),
+        (TRANSACTION_PAYOUT, 'Payout'),
+        (TRANSACTION_ADJUSTMENT, 'Adjustment'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hub = models.ForeignKey(Hub, on_delete=models.CASCADE, related_name='transactions')
+    hub_delivery = models.ForeignKey(HubDelivery, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    description = models.CharField(max_length=255)
+    
+    # M-Pesa details
+    mpesa_transaction_id = models.CharField(max_length=50, blank=True)
+    mpesa_receipt = models.CharField(max_length=50, blank=True)
+    
+    # Balance tracking
+    balance_before = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    balance_after = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name_plural = 'Hub Transactions'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.hub.hub_name} - {self.get_transaction_type_display()}: KES {self.amount}"
+
+
+class HubRating(models.Model):
+    """Customer ratings for hub service"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hub = models.ForeignKey(Hub, on_delete=models.CASCADE, related_name='ratings')
+    delivery = models.OneToOneField(HubDelivery, on_delete=models.CASCADE, related_name='rating')
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Rating (1-5 stars)
+    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    
+    # Feedback
+    review = models.TextField(blank=True)
+    
+    # Aspects
+    service_quality = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    location_convenience = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    staff_friendliness = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name_plural = 'Hub Ratings'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.hub.hub_name} - {self.rating} stars"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Update hub average rating
+        self.hub.update_rating(self.rating)
+
+
+class HubPayout(models.Model):
+    """Periodic payouts to hub partners"""
+    STATUS_PENDING = 'pending'
+    STATUS_PROCESSING = 'processing'
+    STATUS_COMPLETED = 'completed'
+    STATUS_FAILED = 'failed'
+    
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_PROCESSING, 'Processing'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hub = models.ForeignKey(Hub, on_delete=models.CASCADE, related_name='payouts')
+    
+    # Period
+    period_start = models.DateField()
+    period_end = models.DateField()
+    
+    # Amounts
+    total_commissions = models.DecimalField(max_digits=15, decimal_places=2)
+    total_cod_collected = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    deductions = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    net_payout = models.DecimalField(max_digits=15, decimal_places=2)
+    
+    # Payment
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    mpesa_transaction_id = models.CharField(max_length=50, blank=True)
+    payment_date = models.DateTimeField(null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = 'Hub Payouts'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.hub.hub_name} - KES {self.net_payout} ({self.period_start} to {self.period_end})"
+

@@ -8,7 +8,8 @@ from .models import (
     Rating, ReferralCode, Referral, Wallet, WalletTransaction,
     CashOnDelivery, DeliveryInsurance, InsuranceClaim,
     TrackingLink, BusinessAccount, BulkOrder, BulkDeliveryItem,
-    BusinessCredit, BusinessCreditTransaction, BusinessInvoice, BusinessAPILog
+    BusinessCredit, BusinessCreditTransaction, BusinessInvoice, BusinessAPILog,
+    Hub, HubDelivery, HubTransaction, HubRating, HubPayout
 )
 
 
@@ -979,4 +980,134 @@ class BusinessAPILogSerializer(serializers.ModelSerializer):
             'created_at'
         ]
         read_only_fields = ['id', 'endpoint', 'method', 'status_code', 'ip_address', 'created_at']
+
+
+# =============================================================================
+# Micro-Hub Network Serializers
+# =============================================================================
+class HubSerializer(serializers.ModelSerializer):
+    partner_name = serializers.CharField(source='partner.get_full_name', read_only=True)
+    is_available = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Hub
+        fields = [
+            'id', 'partner_name', 'hub_name', 'hub_type', 'hub_code',
+            'address', 'latitude', 'longitude', 'city', 'area',
+            'contact_name', 'contact_phone', 'contact_email',
+            'opening_time', 'closing_time', 'operates_weekends',
+            'storage_capacity', 'current_occupancy', 'commission_percentage',
+            'mpesa_number', 'mpesa_name', 'status', 'is_verified',
+            'average_rating', 'total_ratings', 'total_deliveries',
+            'total_earnings', 'created_at', 'is_available', 'distance'
+        ]
+        read_only_fields = ['id', 'hub_code', 'status', 'is_verified', 'average_rating', 'total_ratings', 'total_deliveries', 'total_earnings', 'created_at']
+    
+    def get_is_available(self, obj):
+        return obj.is_available()
+    
+    def get_distance(self, obj):
+        # Calculate distance from user's location if provided
+        request = self.context.get('request')
+        if request and hasattr(request, 'query_params'):
+            user_lat = request.query_params.get('lat')
+            user_lng = request.query_params.get('lng')
+            if user_lat and user_lng:
+                from math import radians, sin, cos, sqrt, atan2
+                R = 6371  # Earth radius in km
+                
+                lat1 = radians(float(user_lat))
+                lon1 = radians(float(user_lng))
+                lat2 = radians(float(obj.latitude))
+                lon2 = radians(float(obj.longitude))
+                
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                
+                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                c = 2 * atan2(sqrt(a), sqrt(1-a))
+                distance = R * c
+                
+                return round(distance, 2)
+        return None
+
+
+class HubCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hub
+        fields = [
+            'hub_name', 'hub_type', 'address', 'latitude', 'longitude',
+            'city', 'area', 'contact_name', 'contact_phone', 'contact_email',
+            'opening_time', 'closing_time', 'operates_weekends',
+            'storage_capacity', 'mpesa_number', 'mpesa_name'
+        ]
+
+
+class HubDeliverySerializer(serializers.ModelSerializer):
+    hub_name = serializers.CharField(source='hub.hub_name', read_only=True)
+    hub_address = serializers.CharField(source='hub.address', read_only=True)
+    job_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = HubDelivery
+        fields = [
+            'id', 'hub_name', 'hub_address', 'recipient_name', 'recipient_phone',
+            'recipient_email', 'pickup_code', 'status', 'arrived_at_hub',
+            'notified_recipient_at', 'picked_up_at', 'is_cod', 'cod_amount',
+            'cod_collected', 'hub_commission', 'commission_paid',
+            'special_instructions', 'notes', 'created_at', 'job_details'
+        ]
+        read_only_fields = ['id', 'pickup_code', 'status', 'arrived_at_hub', 'notified_recipient_at', 'picked_up_at', 'created_at']
+    
+    def get_job_details(self, obj):
+        from core.serializers import JobSerializer
+        return JobSerializer(obj.job).data if obj.job else None
+
+
+class HubDeliveryCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HubDelivery
+        fields = [
+            'job', 'hub', 'recipient_name', 'recipient_phone', 'recipient_email',
+            'is_cod', 'cod_amount', 'special_instructions'
+        ]
+
+
+class HubTransactionSerializer(serializers.ModelSerializer):
+    hub_name = serializers.CharField(source='hub.hub_name', read_only=True)
+    
+    class Meta:
+        model = HubTransaction
+        fields = [
+            'id', 'hub_name', 'transaction_type', 'amount', 'description',
+            'mpesa_transaction_id', 'mpesa_receipt', 'balance_before',
+            'balance_after', 'created_at'
+        ]
+        read_only_fields = ['id', 'balance_before', 'balance_after', 'created_at']
+
+
+class HubRatingSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
+    
+    class Meta:
+        model = HubRating
+        fields = [
+            'id', 'customer_name', 'rating', 'review', 'service_quality',
+            'location_convenience', 'staff_friendliness', 'created_at'
+        ]
+        read_only_fields = ['id', 'customer_name', 'created_at']
+
+
+class HubPayoutSerializer(serializers.ModelSerializer):
+    hub_name = serializers.CharField(source='hub.hub_name', read_only=True)
+    
+    class Meta:
+        model = HubPayout
+        fields = [
+            'id', 'hub_name', 'period_start', 'period_end', 'total_commissions',
+            'total_cod_collected', 'deductions', 'net_payout', 'status',
+            'mpesa_transaction_id', 'payment_date', 'created_at'
+        ]
+        read_only_fields = ['id', 'hub_name', 'net_payout', 'created_at']
 
