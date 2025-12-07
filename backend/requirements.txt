@@ -1,0 +1,27 @@
+# Django Core
+Django==4.2
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
+
+# Django REST Framework
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.3.1
+
+# Firebase Admin (for push notifications)
+firebase-admin==6.5.0
+
+# Stripe Payments
+stripe==8.6.0
+
+# PayPal Payouts
+paypalrestsdk==1.13.3
+
+# Image Processing
+pillow==10.2.0
+
+# HTTP Requests (for Google Maps API)
+requests==2.31.0
+
+# Environment variables
+python-decouple==3.8
