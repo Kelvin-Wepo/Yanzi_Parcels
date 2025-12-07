@@ -47,6 +47,12 @@ from core.api.vehicle import (
     CourierVerificationView,
     AvailableCouriersView,
 )
+from core.api.business import (
+    BusinessAccountViewSet,
+    BulkOrderViewSet,
+    BusinessCreditViewSet,
+    BusinessInvoiceViewSet,
+)
 from core.api.addresses import (
     SavedAddressListView,
     SavedAddressDetailView,
@@ -210,4 +216,68 @@ urlpatterns = [
     # Reorder endpoints
     path('reorder/', ReorderJobView.as_view(), name='api_reorder_job'),
     path('reorder/jobs/', ReorderableJobsView.as_view(), name='api_reorderable_jobs'),
+
+    # B2B Business Portal endpoints
+    path('business/accounts/', BusinessAccountViewSet.as_view({
+        'get': 'list',
+        'post': 'create',
+    }), name='api_business_accounts'),
+    path('business/accounts/<uuid:pk>/', BusinessAccountViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy',
+    }), name='api_business_account_detail'),
+    path('business/accounts/<uuid:pk>/dashboard/', BusinessAccountViewSet.as_view({
+        'get': 'dashboard',
+    }), name='api_business_dashboard'),
+    path('business/accounts/<uuid:pk>/analytics/', BusinessAccountViewSet.as_view({
+        'get': 'analytics',
+    }), name='api_business_analytics'),
+    path('business/accounts/<uuid:pk>/regenerate-api-key/', BusinessAccountViewSet.as_view({
+        'post': 'regenerate_api_key',
+    }), name='api_regenerate_api_key'),
+    
+    # Bulk Orders endpoints
+    path('business/bulk-orders/', BulkOrderViewSet.as_view({
+        'get': 'list',
+        'post': 'create',
+    }), name='api_bulk_orders'),
+    path('business/bulk-orders/<uuid:pk>/', BulkOrderViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+    }), name='api_bulk_order_detail'),
+    path('business/bulk-orders/upload-csv/', BulkOrderViewSet.as_view({
+        'post': 'upload_csv',
+    }), name='api_bulk_upload_csv'),
+    path('business/bulk-orders/<uuid:pk>/assign-couriers/', BulkOrderViewSet.as_view({
+        'post': 'assign_couriers',
+    }), name='api_bulk_assign_couriers'),
+    
+    # Business Credit endpoints
+    path('business/credits/', BusinessCreditViewSet.as_view({
+        'get': 'list',
+    }), name='api_business_credits'),
+    path('business/credits/<uuid:pk>/', BusinessCreditViewSet.as_view({
+        'get': 'retrieve',
+    }), name='api_business_credit_detail'),
+    path('business/credits/<uuid:pk>/purchase/', BusinessCreditViewSet.as_view({
+        'post': 'purchase_credit',
+    }), name='api_purchase_credit'),
+    path('business/credits/<uuid:pk>/transactions/', BusinessCreditViewSet.as_view({
+        'get': 'transactions',
+    }), name='api_credit_transactions'),
+    
+    # Business Invoices endpoints
+    path('business/invoices/', BusinessInvoiceViewSet.as_view({
+        'get': 'list',
+    }), name='api_business_invoices'),
+    path('business/invoices/<uuid:pk>/', BusinessInvoiceViewSet.as_view({
+        'get': 'retrieve',
+    }), name='api_business_invoice_detail'),
+    path('business/invoices/<uuid:pk>/mark-paid/', BusinessInvoiceViewSet.as_view({
+        'post': 'mark_paid',
+    }), name='api_mark_invoice_paid'),
 ]
+
