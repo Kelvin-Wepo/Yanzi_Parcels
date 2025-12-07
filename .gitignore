@@ -6,19 +6,74 @@ __pycache__/
 # Virtual environment
 venv/
 env/
-Virtual/
+virtual/
+.venv/
+backend/venv/
 
-# Django development settings file
+# Django
 *.sqlite3
+db.sqlite3
 
 # Log files
-*.log/
+*.log
 
 # Environment variables file
-.env/
+.env
+.env.local
+.env.*.local
 
-# Static files
+# Static files (collected)
 staticfiles/
 
-# Media files
+# Media files (user uploads)
 media/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Firebase credentials (sensitive)
+*-firebase-adminsdk-*.json
+firebase-adminsdk*.json
+
+# Python packaging
+*.egg-info/
+*.egg
+.eggs/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Pytest cache
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Local development
+*.local
+
