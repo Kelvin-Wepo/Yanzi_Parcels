@@ -995,3 +995,232 @@ class BusinessAccount(models.Model):
         self.save()
         return self.api_key
 
+
+# =============================================================================
+# Bulk Order & Delivery Management
+# =============================================================================
+class BulkOrder(models.Model):
+    """Bulk order containing multiple delivery items"""
+    STATUS_PENDING = 'pending'
+    STATUS_PROCESSING = 'processing'
+    STATUS_PARTIAL = 'partial'
+    STATUS_ASSIGNED = 'assigned'
+    STATUS_COMPLETED = 'completed'
+    STATUS_FAILED = 'failed'
+    
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_PROCESSING, 'Processing'),
+        (STATUS_PARTIAL, 'Partially Assigned'),
+        (STATUS_ASSIGNED, 'Fully Assigned'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.ForeignKey(BusinessAccount, on_delete=models.CASCADE, related_name='bulk_orders')
+    
+    # Order info
+    order_name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    
+    # File upload
+    csv_file = models.FileField(upload_to='bulk_orders/', blank=True, null=True)
+    
+    # Stats
+    total_items = models.IntegerField(default=0)
+    assigned_items = models.IntegerField(default=0)
+    completed_items = models.IntegerField(default=0)
+    failed_items = models.IntegerField(default=0)
+    
+    # Cost
+    estimated_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    actual_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.business.business_name} - {self.order_name}"
+
+
+class BulkDeliveryItem(models.Model):
+    """Individual item in a bulk order"""
+    STATUS_PENDING = 'pending'
+    STATUS_ASSIGNED = 'assigned'
+    STATUS_PICKED_UP = 'picked_up'
+    STATUS_IN_TRANSIT = 'in_transit'
+    STATUS_DELIVERED = 'delivered'
+    STATUS_FAILED = 'failed'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending Assignment'),
+        (STATUS_ASSIGNED, 'Assigned to Courier'),
+        (STATUS_PICKED_UP, 'Picked Up'),
+        (STATUS_IN_TRANSIT, 'In Transit'),
+        (STATUS_DELIVERED, 'Delivered'),
+        (STATUS_FAILED, 'Failed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bulk_order = models.ForeignKey(BulkOrder, on_delete=models.CASCADE, related_name='items')
+    job = models.OneToOneField(Job, on_delete=models.SET_NULL, null=True, blank=True, related_name='bulk_item')
+    
+    # Delivery details
+    customer_name = models.CharField(max_length=255)
+    customer_phone = models.CharField(max_length=20)
+    customer_email = models.EmailField(blank=True)
+    
+    # Pickup
+    pickup_address = models.CharField(max_length=255)
+    pickup_phone = models.CharField(max_length=20)
+    pickup_lat = models.DecimalField(max_digits=9, decimal_places=6)
+    pickup_lng = models.DecimalField(max_digits=9, decimal_places=6)
+    
+    # Delivery
+    delivery_address = models.CharField(max_length=255)
+    delivery_phone = models.CharField(max_length=20)
+    delivery_lat = models.DecimalField(max_digits=9, decimal_places=6)
+    delivery_lng = models.DecimalField(max_digits=9, decimal_places=6)
+    
+    # Package details
+    item_name = models.CharField(max_length=255)
+    item_description = models.TextField(blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    weight_kg = models.DecimalField(max_digits=8, decimal_places=2)
+    size = models.CharField(max_length=20)  # small, medium, large
+    
+    # Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    
+    # Cost
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    actual_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    # Notes
+    special_instructions = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    assigned_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.bulk_order.business.business_name} - {self.item_name}"
+
+
+class BusinessCredit(models.Model):
+    """Credit account for prepaid services"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.OneToOneField(BusinessAccount, on_delete=models.CASCADE, related_name='credit_account')
+    
+    balance = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    total_purchased = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    total_used = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.business.business_name} - Balance: KES {self.balance}"
+
+
+class BusinessCreditTransaction(models.Model):
+    """Transaction record for credit movements"""
+    TRANSACTION_PURCHASE = 'purchase'
+    TRANSACTION_DELIVERY = 'delivery'
+    TRANSACTION_REFUND = 'refund'
+    TRANSACTION_ADJUSTMENT = 'adjustment'
+    
+    TRANSACTION_TYPES = [
+        (TRANSACTION_PURCHASE, 'Credit Purchase'),
+        (TRANSACTION_DELIVERY, 'Delivery Charge'),
+        (TRANSACTION_REFUND, 'Refund'),
+        (TRANSACTION_ADJUSTMENT, 'Admin Adjustment'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    credit_account = models.ForeignKey(BusinessCredit, on_delete=models.CASCADE, related_name='transactions')
+    
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    description = models.CharField(max_length=255)
+    
+    related_job = models.ForeignKey(Job, on_delete=models.SET_NULL, null=True, blank=True)
+    related_bulk_item = models.ForeignKey(BulkDeliveryItem, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    balance_before = models.DecimalField(max_digits=15, decimal_places=2)
+    balance_after = models.DecimalField(max_digits=15, decimal_places=2)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.credit_account.business.business_name} - {self.get_transaction_type_display()}: KES {self.amount}"
+
+
+class BusinessInvoice(models.Model):
+    """Monthly invoice for business accounts"""
+    STATUS_DRAFT = 'draft'
+    STATUS_SENT = 'sent'
+    STATUS_PAID = 'paid'
+    STATUS_OVERDUE = 'overdue'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, 'Draft'),
+        (STATUS_SENT, 'Sent'),
+        (STATUS_PAID, 'Paid'),
+        (STATUS_OVERDUE, 'Overdue'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.ForeignKey(BusinessAccount, on_delete=models.CASCADE, related_name='invoices')
+    
+    invoice_number = models.CharField(max_length=50, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    
+    # Period
+    period_start = models.DateField()
+    period_end = models.DateField()
+    
+    # Charges
+    subtotal = models.DecimalField(max_digits=15, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    tax_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2)
+    
+    # Payment
+    paid_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    due_date = models.DateField()
+    paid_date = models.DateField(null=True, blank=True)
+    payment_method = models.CharField(max_length=50, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Invoice {self.invoice_number}"
+
+
+class BusinessAPILog(models.Model):
+    """Track all API requests for auditing"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    business = models.ForeignKey(BusinessAccount, on_delete=models.CASCADE, related_name='api_logs')
+    
+    endpoint = models.CharField(max_length=255)
+    method = models.CharField(max_length=10)
+    status_code = models.IntegerField()
+    request_data = models.JSONField(default=dict, blank=True)
+    response_data = models.JSONField(default=dict, blank=True)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.business.business_name} - {self.endpoint} ({self.status_code})"
+

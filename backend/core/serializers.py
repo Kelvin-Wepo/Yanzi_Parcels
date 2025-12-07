@@ -7,7 +7,8 @@ from .models import (
     SavedAddress, Recipient, ScheduledDelivery,
     Rating, ReferralCode, Referral, Wallet, WalletTransaction,
     CashOnDelivery, DeliveryInsurance, InsuranceClaim,
-    TrackingLink, BusinessAccount
+    TrackingLink, BusinessAccount, BulkOrder, BulkDeliveryItem,
+    BusinessCredit, BusinessCreditTransaction, BusinessInvoice, BusinessAPILog
 )
 
 
@@ -873,3 +874,109 @@ class ReorderJobSerializer(serializers.Serializer):
             return value
         except Job.DoesNotExist:
             raise serializers.ValidationError("Original job not found")
+
+
+# =============================================================================
+# B2B Business Portal Serializers
+# =============================================================================
+class BusinessAccountSerializer(serializers.ModelSerializer):
+    owner_email = serializers.CharField(source='owner.email', read_only=True)
+    owner_name = serializers.CharField(source='owner.get_full_name', read_only=True)
+    discount_percentage = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BusinessAccount
+        fields = [
+            'id', 'owner_email', 'owner_name', 'business_name', 'business_type',
+            'contact_email', 'contact_phone', 'business_address',
+            'tier', 'discount_percentage', 'credit_limit', 'current_credit_used',
+            'is_verified', 'is_active', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'is_verified', 'created_at', 'updated_at']
+    
+    def get_discount_percentage(self, obj):
+        return obj.discount_percentage
+
+
+class BusinessAccountCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessAccount
+        fields = [
+            'business_name', 'business_type', 'contact_name', 'contact_email',
+            'contact_phone', 'business_address', 'registration_number', 'kra_pin'
+        ]
+
+
+class BulkDeliveryItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BulkDeliveryItem
+        fields = [
+            'id', 'customer_name', 'customer_phone', 'customer_email',
+            'pickup_address', 'pickup_phone', 'pickup_lat', 'pickup_lng',
+            'delivery_address', 'delivery_phone', 'delivery_lat', 'delivery_lng',
+            'item_name', 'item_description', 'weight_kg', 'size',
+            'status', 'estimated_cost', 'actual_cost', 'special_instructions',
+            'created_at', 'completed_at'
+        ]
+        read_only_fields = ['id', 'status', 'created_at', 'completed_at']
+
+
+class BulkOrderSerializer(serializers.ModelSerializer):
+    items = BulkDeliveryItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = BulkOrder
+        fields = [
+            'id', 'order_name', 'description', 'status', 'total_items',
+            'assigned_items', 'completed_items', 'failed_items',
+            'estimated_cost', 'actual_cost', 'created_at', 'completed_at', 'items'
+        ]
+        read_only_fields = ['id', 'status', 'total_items', 'assigned_items', 'completed_items', 'failed_items', 'created_at', 'completed_at']
+
+
+class BulkOrderCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BulkOrder
+        fields = ['order_name', 'description']
+
+
+class BusinessCreditSerializer(serializers.ModelSerializer):
+    business_name = serializers.CharField(source='business.business_name', read_only=True)
+    
+    class Meta:
+        model = BusinessCredit
+        fields = ['id', 'business_name', 'balance', 'total_purchased', 'total_used', 'updated_at']
+        read_only_fields = ['id', 'balance', 'total_purchased', 'total_used', 'updated_at']
+
+
+class BusinessCreditTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessCreditTransaction
+        fields = [
+            'id', 'transaction_type', 'amount', 'description',
+            'balance_before', 'balance_after', 'created_at'
+        ]
+        read_only_fields = ['id', 'balance_before', 'balance_after', 'created_at']
+
+
+class BusinessInvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessInvoice
+        fields = [
+            'id', 'invoice_number', 'status', 'period_start', 'period_end',
+            'subtotal', 'discount_amount', 'tax_amount', 'total_amount',
+            'paid_amount', 'due_date', 'paid_date', 'payment_method',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'invoice_number', 'subtotal', 'total_amount', 'created_at', 'updated_at']
+
+
+class BusinessAPILogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessAPILog
+        fields = [
+            'id', 'endpoint', 'method', 'status_code', 'ip_address',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'endpoint', 'method', 'status_code', 'ip_address', 'created_at']
+
