@@ -28,6 +28,10 @@ import CourierArchivedJobs from './pages/courier/ArchivedJobs'
 import CourierPayoutMethod from './pages/courier/PayoutMethod'
 import CourierVehicles from './pages/courier/Vehicles'
 
+// B2B Business pages
+import BusinessPortal from './pages/business/BusinessPortal'
+import BusinessRegistration from './pages/business/BusinessRegistration'
+
 // Landing page
 import Home from './pages/Home'
 
@@ -56,6 +60,24 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/track/:trackingCode" element={<PublicTracking />} />
+
+        {/* B2B Business routes */}
+        <Route
+          path="/business"
+          element={
+            <ProtectedRoute allowedUserType="customer">
+              <BusinessPortal />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business/register"
+          element={
+            <ProtectedRoute allowedUserType="customer">
+              <BusinessRegistration />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Customer routes */}
         <Route
